@@ -5,9 +5,9 @@
 # to you under the Apache License, Version 2.0 (the
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
-#
+# 
 #   http://www.apache.org/licenses/LICENSE-2.0
-#
+# 
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
 # "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -15,9 +15,16 @@
 # specific language governing permissions and limitations
 # under the License.
 
-add_subdirectory(shell)
-add_subdirectory(remote_shell)
-add_subdirectory(shell_bonjour)
-add_subdirectory(shell_tui)
+find_package(glog REQUIRED)
 
-add_subdirectory(cxx_shell)
+set(SOURCES
+        src/main.cc
+        src/Registry_tests.cc
+        src/Filter_tests.cc
+        src/ServiceTracking_tests.cc
+)
+add_executable(celix_registry_tests ${SOURCES})
+target_link_libraries(celix_registry_tests PRIVATE gtest glog::glog celix::registry)
+
+add_test(NAME celix_registry_tests COMMAND celix_registry_tests)
+SETUP_TARGET_FOR_COVERAGE(celix_registry_tests_cov celix_registry_tests ${CMAKE_BINARY_DIR}/coverage/registry)

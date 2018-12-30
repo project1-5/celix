@@ -22,19 +22,22 @@
 #define CXX_CELIX_CONSTANTS_H
 
 namespace celix {
-    class Constants {
-    public:
-        //NOTE manually aligned with celix_constants.h
-        static constexpr const char *const SERVICE_NAME = "objectClass"; //TODO rename to service.name
-        static constexpr const char *const SERVICE_LANGUAGE = "service.version";
-        static constexpr const char *const SERVICE_ID = "service.id";
-        static constexpr const char *const SERVICE_RANKING = "service.ranking";
 
-        static constexpr const char *const SERVICE_C_LANG = "C";
-        static constexpr const char *const SERVICE_CXX_LANG = "C++";
+    //NOTE manually aligned with celix_constants.h
+    static constexpr const char *const SERVICE_NAME = "service.name";
+    static constexpr const char *const SERVICE_ID = "service.id";
+    static constexpr const char *const SERVICE_RANKING = "service.ranking";
 
-        static constexpr const char *const FRAMEWORK_UUID = "framework.uuid";
-    };
+    static constexpr const char *const FRAMEWORK_UUID = "framework.uuid";
+
+    static constexpr const char *const CXX_LANG = "C++";
+    static constexpr const char *const C_LANG = "C";
+
+
+    static constexpr const char *const MANIFEST_BUNDLE_SYMBOLIC_NAME = "Bundle-SymbolicName";
+    static constexpr const char *const MANIFEST_BUNDLE_NAME = "Bundle-Name";
+    static constexpr const char *const MANIFEST_BUNDLE_VERSION = "Bundle-Version";
+    static constexpr const char *const MANIFEST_BUNDLE_GROUP = "Bundle-Group";
 }
 
 #endif //CXX_CELIX_CONSTANTS_H

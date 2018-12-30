@@ -16,24 +16,21 @@
  *specific language governing permissions and limitations
  *under the License.
  */
-/*
- * framework_patch.h
- *
- *  \date       Aug 12, 2013
- *  \author    	<a href="mailto:dev@celix.apache.org">Apache Celix Project Team</a>
- *  \copyright	Apache License, Version 2.0
- */
 
+#ifndef CXX_CELIX_ISHELL_H
+#define CXX_CELIX_ISHELL_H
 
-#ifndef BUNDLE_PATCH_H_
-#define BUNDLE_PATCH_H_
+#include <iostream>
 
+namespace celix {
+    class IShell {
+    public:
+        static constexpr const char * const SERVICE_FQN = "celix::IShell [Version 1]";
 
-/* celix.framework.public */
-#include "celix_errno.h"
-#include "BundleImpl.h"
-#include "service_reference.h"
+        virtual ~IShell() = default;
 
-celix_status_t bundle_getBundleLocation(bundle_pt bundle, const char **location);
+        virtual bool executeCommand(const std::string &commandLine, std::ostream &out, std::ostream &err) noexcept = 0;
+    };
+}
 
-#endif /* BUNDLE_PATCH_H_ */
+#endif //CXX_CELIX_ISHELL_H

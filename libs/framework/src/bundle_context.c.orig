@@ -26,7 +26,7 @@
 #include "constants.h"
 #include "bundle_context_private.h"
 #include "framework_private.h"
-#include "bundle.h"
+#include "BundleImpl.h"
 #include "celix_bundle.h"
 #include "celix_log.h"
 #include "service_tracker.h"

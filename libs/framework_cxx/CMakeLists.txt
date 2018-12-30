@@ -15,9 +15,16 @@
 # specific language governing permissions and limitations
 # under the License.
 
-add_subdirectory(shell)
-add_subdirectory(remote_shell)
-add_subdirectory(shell_bonjour)
-add_subdirectory(shell_tui)
+find_package(glog REQUIRED)
 
-add_subdirectory(cxx_shell)
+#TODO rename to celix::framework
+add_library(celix_framework_cxx SHARED
+        src/Framework.cc
+)
+target_include_directories(celix_framework_cxx PRIVATE src)
+target_include_directories(celix_framework_cxx PUBLIC include)
+target_link_libraries(celix_framework_cxx PUBLIC celix::registry glog::glog) #TODO glog private and static lib
+
+if (ENABLE_TESTING)
+    add_subdirectory(gtest)
+endif ()

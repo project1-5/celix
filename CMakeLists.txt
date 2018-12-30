@@ -56,8 +56,6 @@ option(ENABLE_GTESTING "Enables unit testing using GTest" ON)
 
 if (ENABLE_TESTING)
 	enable_testing()
-endif ()
-if (ENABLE_TESTING AND ENABLE_GTESTING)
     include(cmake/celix_project/AddGTest.cmake)
 endif ()
 

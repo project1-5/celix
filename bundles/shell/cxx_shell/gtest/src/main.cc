@@ -16,24 +16,18 @@
  *specific language governing permissions and limitations
  *under the License.
  */
-/*
- * framework_patch.h
- *
- *  \date       Aug 12, 2013
- *  \author    	<a href="mailto:dev@celix.apache.org">Apache Celix Project Team</a>
- *  \copyright	Apache License, Version 2.0
- */
 
+#include <gtest/gtest.h>
+#include <glog/logging.h>
 
-#ifndef BUNDLE_PATCH_H_
-#define BUNDLE_PATCH_H_
+int main(int argc, char **argv) {
+    google::InitGoogleLogging(argv[0]);
+    google::LogToStderr();
 
+    ::testing::InitGoogleTest(&argc, argv);
+    int rc = RUN_ALL_TESTS();
 
-/* celix.framework.public */
-#include "celix_errno.h"
-#include "BundleImpl.h"
-#include "service_reference.h"
+    google::ShutdownGoogleLogging();
 
-celix_status_t bundle_getBundleLocation(bundle_pt bundle, const char **location);
-
-#endif /* BUNDLE_PATCH_H_ */
+    return rc;
+}

@@ -16,24 +16,23 @@
  *specific language governing permissions and limitations
  *under the License.
  */
-/*
- * framework_patch.h
- *
- *  \date       Aug 12, 2013
- *  \author    	<a href="mailto:dev@celix.apache.org">Apache Celix Project Team</a>
- *  \copyright	Apache License, Version 2.0
- */
 
+#ifndef CXX_CELIX_IBUNDLEACTIVATOR_H
+#define CXX_CELIX_IBUNDLEACTIVATOR_H
 
-#ifndef BUNDLE_PATCH_H_
-#define BUNDLE_PATCH_H_
+#include <memory>
 
+#include "IBundleContext.h"
 
-/* celix.framework.public */
-#include "celix_errno.h"
-#include "BundleImpl.h"
-#include "service_reference.h"
+namespace celix {
+    class IBundleActivator {
+    public:
+        virtual ~IBundleActivator() = default;
 
-celix_status_t bundle_getBundleLocation(bundle_pt bundle, const char **location);
+        virtual bool resolve(std::shared_ptr<celix::IBundleContext> /*ctx*/) noexcept { return true; };
+        virtual bool start(std::shared_ptr<celix::IBundleContext> ctx) noexcept = 0;
+        virtual bool stop(std::shared_ptr<celix::IBundleContext> /*ctx*/) noexcept { return true; }
+    };
+}
 
-#endif /* BUNDLE_PATCH_H_ */
+#endif //CXX_CELIX_IBUNDLEACTIVATOR_H

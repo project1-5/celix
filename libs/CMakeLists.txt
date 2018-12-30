@@ -23,6 +23,9 @@ add_subdirectory(etcdlib)
 
 add_subdirectory(framework)
 
+add_subdirectory(registry)
+add_subdirectory(framework_cxx)
+
 #launcher
 add_subdirectory(launcher)
 

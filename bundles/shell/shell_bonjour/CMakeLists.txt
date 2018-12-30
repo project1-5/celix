@@ -33,7 +33,7 @@ if (SHELL_BONJOUR)
 		 	private/src/activator.c
 		 	private/src/bonjour_shell.c
 	)
-	add_library(Celix::bonjour_shell ALIAS bonjour_shell)
+	add_library(Celix::bonjour_shell ALIAS bonjour_shell ../cxx_shell/src/ShellActivator.cc)
 
 
 	target_include_directories(bonjour_shell PRIVATE

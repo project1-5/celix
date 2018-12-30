@@ -35,7 +35,7 @@ extern "C" {
 	#include "framework.h"
 	#include "remote_service_admin.h"
 	#include "calculator_service.h"
-	#include "bundle.h"
+	#include "BundleImpl.h"
 
 	#define DISCOVERY_CFG_NAME      "apache_celix_rsa_discovery_shm"
 	#define RSA_HTTP_NAME           "apache_celix_remote_service_admin_shm"

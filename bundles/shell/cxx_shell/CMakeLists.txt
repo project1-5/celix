@@ -15,9 +15,23 @@
 # specific language governing permissions and limitations
 # under the License.
 
-add_subdirectory(shell)
-add_subdirectory(remote_shell)
-add_subdirectory(shell_bonjour)
-add_subdirectory(shell_tui)
+find_package(glog REQUIRED)
 
-add_subdirectory(cxx_shell)
+#TODO rename to celix::shell && celix::shell_api
+
+add_library(shell_api_cxx INTERFACE)
+target_include_directories(shell_api INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
+    $<INSTALL_INTERFACE:include/celix/shell>
+)
+
+add_library(celix_shell_cxx STATIC
+        src/ShellActivator.cc
+        include/celix/IShell.h)
+target_include_directories(celix_shell_cxx PRIVATE src)
+target_include_directories(celix_shell_cxx PUBLIC include)
+target_link_libraries(celix_shell_cxx PRIVATE glog::glog celix_framework_cxx)
+
+#if (ENABLE_TESTING)
+#    add_subdirectory(gtest)
+#endif ()

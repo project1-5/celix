@@ -16,24 +16,14 @@
  *specific language governing permissions and limitations
  *under the License.
  */
-/*
- * framework_patch.h
- *
- *  \date       Aug 12, 2013
- *  \author    	<a href="mailto:dev@celix.apache.org">Apache Celix Project Team</a>
- *  \copyright	Apache License, Version 2.0
- */
 
+#ifndef CXX_CELIX_API_H
+#define CXX_CELIX_API_H
 
-#ifndef BUNDLE_PATCH_H_
-#define BUNDLE_PATCH_H_
+#include "celix/Constants.h"
+#include "celix/Filter.h"
+#include "celix/ServiceRegistry.h"
+#include "celix/Framework.h"
+#include "celix/IBundleActivator.h"
 
-
-/* celix.framework.public */
-#include "celix_errno.h"
-#include "BundleImpl.h"
-#include "service_reference.h"
-
-celix_status_t bundle_getBundleLocation(bundle_pt bundle, const char **location);
-
-#endif /* BUNDLE_PATCH_H_ */
+#endif //CXX_CELIX_API_H

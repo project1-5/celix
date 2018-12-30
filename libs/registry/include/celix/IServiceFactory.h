@@ -16,24 +16,26 @@
  *specific language governing permissions and limitations
  *under the License.
  */
-/*
- * framework_patch.h
- *
- *  \date       Aug 12, 2013
- *  \author    	<a href="mailto:dev@celix.apache.org">Apache Celix Project Team</a>
- *  \copyright	Apache License, Version 2.0
- */
 
+#ifndef CXX_CELIX_ISERVICEFACTORY_H
+#define CXX_CELIX_ISERVICEFACTORY_H
 
-#ifndef BUNDLE_PATCH_H_
-#define BUNDLE_PATCH_H_
+#include "celix/Properties.h"
+#include "celix/IResourceBundle.h"
 
+namespace celix {
 
-/* celix.framework.public */
-#include "celix_errno.h"
-#include "BundleImpl.h"
-#include "service_reference.h"
+    template<typename I>
+    class IServiceFactory {
+    public:
+        using type = I;
 
-celix_status_t bundle_getBundleLocation(bundle_pt bundle, const char **location);
+        virtual ~IServiceFactory() = default;
 
-#endif /* BUNDLE_PATCH_H_ */
+        virtual I* getService(const celix::IResourceBundle &requestingBundle, const celix::Properties &properties) noexcept = 0;
+        virtual void ungetService(const celix::IResourceBundle &requestingBundle, const celix::Properties &properties) noexcept = 0;
+    };
+
+}
+
+#endif //CXX_CELIX_ISERVICEFACTORY_H

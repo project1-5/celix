@@ -15,9 +15,18 @@
 # specific language governing permissions and limitations
 # under the License.
 
-add_subdirectory(shell)
-add_subdirectory(remote_shell)
-add_subdirectory(shell_bonjour)
-add_subdirectory(shell_tui)
+find_package(glog REQUIRED)
 
-add_subdirectory(cxx_shell)
+add_library(celix_registry STATIC
+        src/ServiceRegistry.cc
+        src/Filter.cc
+)
+target_include_directories(celix_registry PRIVATE src)
+target_include_directories(celix_registry PUBLIC include)
+target_link_libraries(celix_registry PRIVATE glog::glog) #TODO make glog static and private
+
+add_library(celix::registry ALIAS celix_registry)
+
+if (ENABLE_TESTING)
+    add_subdirectory(gtest)
+endif ()
