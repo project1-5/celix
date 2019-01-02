@@ -20,10 +20,11 @@
 #ifndef CXX_CELIX_DM_PROPERTIES_H
 #define CXX_CELIX_DM_PROPERTIES_H
 
-#include "celix/Properties.h"
+#include <unordered_map>
+#include <string>
 
 namespace celix { namespace dm {
-    using Properties = celix::Properties;
+    using Properties = std::unordered_map<std::string,std::string>;
 }}
 
 #endif //CXX_CELIX_DM_PROPERTIES_H

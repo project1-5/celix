@@ -72,10 +72,6 @@ if (ENABLE_TESTING)
     add_subdirectory(tst)
 endif()
 
-if (ENABLE_TESTING AND ENABLE_GTESTING)
-    add_subdirectory(gtest)
-endif ()
-
 celix_subproject(FRAMEWORK_TESTS "Option to build the framework tests" "OFF" DEPS)
 if (ENABLE_TESTING AND FRAMEWORK_TESTS)
     find_package(CppUTest REQUIRED)

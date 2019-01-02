@@ -129,7 +129,7 @@ namespace {
 
     class ShellTuiBundleActivator : public celix::IBundleActivator {
     public:
-        ShellTuiBundleActivator(std::shared_ptr<celix::IBundleContext> ctx) {
+        ShellTuiBundleActivator(std::shared_ptr<celix::BundleContext> ctx) {
             celix::ServiceTrackerOptions<celix::IShell> opts{};
             opts.set = std::bind(&ShellTui::setShell, &tui, std::placeholders::_1);
             trk = ctx->trackServices(opts);

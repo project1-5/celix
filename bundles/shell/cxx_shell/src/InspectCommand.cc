@@ -26,7 +26,7 @@
 
 namespace {
 
-    void inspect(std::shared_ptr<celix::IBundleContext> ctx, const std::string &, const std::vector<std::string> &cmdArgs, std::ostream &out, std::ostream &) {
+    void inspect(std::shared_ptr<celix::BundleContext> ctx, const std::string &, const std::vector<std::string> &cmdArgs, std::ostream &out, std::ostream &) {
         if (cmdArgs.empty()) {
             out << "Provide a bundle id" << std::endl;
         } else {
@@ -58,7 +58,7 @@ namespace {
 }
 
 
-celix::ServiceRegistration impl::registerInspect(std::shared_ptr<celix::IBundleContext> ctx) {
+celix::ServiceRegistration impl::registerInspect(std::shared_ptr<celix::BundleContext> ctx) {
     using namespace std::placeholders;
     celix::ShellCommandFunction cmd = std::bind(&inspect, ctx, _1, _2, _3, _4);
 

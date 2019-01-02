@@ -24,23 +24,24 @@
 
 #include "celix/Constants.h"
 #include "celix/ServiceRegistry.h"
-#include "celix/IBundleContext.h"
-#include "celix/IBundle.h"
 #include "celix/IBundleActivator.h"
+#include "celix/IBundle.h"
 
 namespace celix {
+
+    class BundleContext; //forward declaration
 
     //TODO resources. resolved from bundle specific symbols which is linked zip file to the library
     void registerStaticBundle(
             std::string symbolicName,
-            std::function<celix::IBundleActivator*(std::shared_ptr<celix::IBundleContext>)> bundleActivatorFactory = {},
+            std::function<celix::IBundleActivator*(std::shared_ptr<celix::BundleContext>)> bundleActivatorFactory = {},
             celix::Properties manifest = {});
 
     template<typename T>
     void registerStaticBundle(
             std::string symbolicName,
             celix::Properties manifest = {}) {
-        auto actFactory = [](std::shared_ptr<celix::IBundleContext> ctx) {
+        auto actFactory = [](std::shared_ptr<celix::BundleContext> ctx) {
             return new T{std::move(ctx)};
         };
         celix::registerStaticBundle(std::move(symbolicName), actFactory, std::move(manifest));
@@ -58,13 +59,13 @@ namespace celix {
 
         template<typename T>
         long installBundle(std::string name, celix::Properties manifest = {}, bool autoStart = true) {
-            auto actFactory = [](std::shared_ptr<celix::IBundleContext> ctx) {
+            auto actFactory = [](std::shared_ptr<celix::BundleContext> ctx) {
                 return new T{std::move(ctx)};
             };
             return installBundle(name, std::move(actFactory), manifest, autoStart);
         }
 
-        long installBundle(std::string name, std::function<celix::IBundleActivator*(std::shared_ptr<celix::IBundleContext>)> actFactory, celix::Properties manifest = {}, bool autoStart = true);
+        long installBundle(std::string name, std::function<celix::IBundleActivator*(std::shared_ptr<celix::BundleContext>)> actFactory, celix::Properties manifest = {}, bool autoStart = true);
 
 
         //long installBundle(const std::string &path);
@@ -74,6 +75,8 @@ namespace celix {
 
         bool useBundle(long bndId, std::function<void(const celix::IBundle &bnd)> use) const;
         int useBundles(std::function<void(const celix::IBundle &bnd)> use, bool includeFrameworkBundle = false) const;
+
+        //TODO trackBundles
 
         //long bundleIdForName(const std::string &bndName) const;
         std::vector<long> listBundles(bool includeFrameworkBundle = false) const;

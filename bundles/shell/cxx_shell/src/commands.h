@@ -23,14 +23,12 @@
 #include "celix/api.h"
 
 namespace impl {
-    celix::ServiceRegistration registerLb(std::shared_ptr<celix::IBundleContext> ctx);
-    celix::ServiceRegistration registerHelp(std::shared_ptr<celix::IBundleContext> ctx);
-    celix::ServiceRegistration registerStop(std::shared_ptr<celix::IBundleContext> ctx);
-    celix::ServiceRegistration registerStart(std::shared_ptr<celix::IBundleContext> ctx);
-    celix::ServiceRegistration registerInspect(std::shared_ptr<celix::IBundleContext> ctx);
-
-    //query services, trackers & meta trackers TODO
-    // celix::ServiceRegistration registerQuery(std::shared_ptr<celix::IBundleContext> ctx);
+    celix::ServiceRegistration registerLb(std::shared_ptr<celix::BundleContext> ctx);
+    celix::ServiceRegistration registerHelp(std::shared_ptr<celix::BundleContext> ctx);
+    celix::ServiceRegistration registerStop(std::shared_ptr<celix::BundleContext> ctx);
+    celix::ServiceRegistration registerStart(std::shared_ptr<celix::BundleContext> ctx);
+    celix::ServiceRegistration registerInspect(std::shared_ptr<celix::BundleContext> ctx);
+    celix::ServiceRegistration registerQuery(std::shared_ptr<celix::BundleContext> ctx);
 }
 
 

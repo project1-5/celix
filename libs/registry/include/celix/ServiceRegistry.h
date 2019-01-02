@@ -227,6 +227,27 @@ namespace celix {
         }
 
         template<typename I>
+        bool useServiceWithId(long svcId, std::function<void(I& svc)> use, std::shared_ptr<const celix::IResourceBundle> requester = {}) const {
+            auto svcName = celix::serviceName<I>();
+            std::string filter = std::string{"("} + celix::SERVICE_ID + "=" + std::to_string(svcId) + ")";
+            return useService<I>(svcName, use, nullptr, nullptr, filter, std::move(requester));
+        }
+
+        template<typename I>
+        bool useServiceWithId(long svcId, std::function<void(I& svc, const celix::Properties &props)> use, std::shared_ptr<const celix::IResourceBundle> requester = {}) const {
+            auto svcName = celix::serviceName<I>();
+            std::string filter = std::string{"("} + celix::SERVICE_ID + "=" + std::to_string(svcId) + ")";
+            return useService<I>(svcName, nullptr, use, nullptr, filter, std::move(requester));
+        }
+
+        template<typename I>
+        bool useServiceWithId(long svcId, std::function<void(I& svc, const celix::Properties &props, const celix::IResourceBundle &bnd)> use, std::shared_ptr<const celix::IResourceBundle> requester = {}) const {
+            auto svcName = celix::serviceName<I>();
+            std::string filter = std::string{"("} + celix::SERVICE_ID + "=" + std::to_string(svcId) + ")";
+            return useService<I>(svcName, nullptr, nullptr, use, filter, std::move(requester));
+        }
+
+        template<typename I>
         bool useService(std::function<void(I& svc)> use, const std::string &filter = "", std::shared_ptr<const celix::IResourceBundle> requester = {}) const {
             auto svcName = celix::serviceName<I>();
             return useService<I>(svcName, use, nullptr, nullptr, filter, std::move(requester));
@@ -245,19 +266,40 @@ namespace celix {
         }
 
         template<typename F>
-        int useFunctionService(const std::string &functionName, std::function<void(F &function)> use, const std::string &filter = "", std::shared_ptr<const celix::IResourceBundle> requester = {}) const {
+        bool useFunctionServiceWithId(const std::string &functionName, long svcId, std::function<void(F &function)> use, std::shared_ptr<const celix::IResourceBundle> requester = {}) const {
+            auto svcName = celix::functionServiceName<F>(functionName);
+            std::string filter = std::string{"("} + celix::SERVICE_ID + "=" + std::to_string(svcId) + ")";
+            return useService<F>(svcName, use, nullptr, nullptr, filter, std::move(requester));
+        }
+
+        template<typename F>
+        bool useFunctionServiceWithId(const std::string &functionName, long svcId, std::function<void(F &function, const celix::Properties&)> use, std::shared_ptr<const celix::IResourceBundle> requester = {}) const {
+            auto svcName = celix::functionServiceName<F>(functionName);
+            std::string filter = std::string{"("} + celix::SERVICE_ID + "=" + std::to_string(svcId) + ")";
+            return useService<F>(svcName, nullptr, use, nullptr, filter, std::move(requester));
+        }
+
+        template<typename F>
+        bool useFunctionServiceWithId(const std::string &functionName, long svcId, std::function<void(F &function, const celix::Properties&, const celix::IResourceBundle&)> use, std::shared_ptr<const celix::IResourceBundle> requester = {}) const {
+            auto svcName = celix::functionServiceName<F>(functionName);
+            std::string filter = std::string{"("} + celix::SERVICE_ID + "=" + std::to_string(svcId) + ")";
+            return useService<F>(svcName, nullptr, nullptr, use, filter, std::move(requester));
+        }
+
+        template<typename F>
+        bool useFunctionService(const std::string &functionName, std::function<void(F &function)> use, const std::string &filter = "", std::shared_ptr<const celix::IResourceBundle> requester = {}) const {
             auto svcName = celix::functionServiceName<F>(functionName);
             return useService<F>(svcName, use, nullptr, nullptr, filter, std::move(requester));
         }
 
         template<typename F>
-        int useFunctionService(const std::string &functionName, std::function<void(F &function, const celix::Properties&)> use, const std::string &filter = "", std::shared_ptr<const celix::IResourceBundle> requester = {}) const {
+        bool useFunctionService(const std::string &functionName, std::function<void(F &function, const celix::Properties&)> use, const std::string &filter = "", std::shared_ptr<const celix::IResourceBundle> requester = {}) const {
             auto svcName = celix::functionServiceName<F>(functionName);
             return useService<F>(svcName, nullptr, use, nullptr, filter, std::move(requester));
         }
 
         template<typename F>
-        int useFunctionService(const std::string &functionName, std::function<void(F &function, const celix::Properties&, const celix::IResourceBundle&)> use, const std::string &filter = "", std::shared_ptr<const celix::IResourceBundle> requester = {}) const {
+        bool useFunctionService(const std::string &functionName, std::function<void(F &function, const celix::Properties&, const celix::IResourceBundle&)> use, const std::string &filter = "", std::shared_ptr<const celix::IResourceBundle> requester = {}) const {
             auto svcName = celix::functionServiceName<F>(functionName);
             return useService<F>(svcName, nullptr, nullptr, use, filter, std::move(requester));
         }

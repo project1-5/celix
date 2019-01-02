@@ -32,12 +32,12 @@
 
 #include "celix/Framework.h"
 
-#include "BundleImpl.h"
+#include "BundleController.h"
 
 struct StaticBundleEntry {
     const std::string symbolicName;
     const celix::Properties manifest;
-    const std::function<celix::IBundleActivator*(std::shared_ptr<celix::IBundleContext>)> activatorFactory;
+    const std::function<celix::IBundleActivator*(std::shared_ptr<celix::BundleContext>)> activatorFactory;
 };
 
 static struct {
@@ -72,7 +72,7 @@ public:
         return result;
     }
 
-    long installBundle(std::string symbolicName, std::function<celix::IBundleActivator*(std::shared_ptr<celix::IBundleContext>)> actFactory, celix::Properties manifest, bool autoStart) {
+    long installBundle(std::string symbolicName, std::function<celix::IBundleActivator*(std::shared_ptr<celix::BundleContext>)> actFactory, celix::Properties manifest, bool autoStart) {
         //TODO if activator is nullptr -> use empty activator
         //TODO on separate thread ?? specific bundle resolve thread ??
         long bndId = -1L;
@@ -81,7 +81,7 @@ public:
             return bndId;
         }
 
-        std::shared_ptr<celix::impl::BundleController> bndController{nullptr};
+        std::shared_ptr<celix::BundleController> bndController{nullptr};
         {
             manifest[celix::MANIFEST_BUNDLE_SYMBOLIC_NAME] = symbolicName;
             if (manifest.find(celix::MANIFEST_BUNDLE_NAME) == manifest.end()) {
@@ -96,9 +96,9 @@ public:
 
             std::lock_guard<std::mutex> lck{bundles.mutex};
             bndId = bundles.nextBundleId++;
-            auto bnd = std::shared_ptr<celix::impl::Bundle>{new celix::impl::Bundle{bndId, this->fw, std::move(manifest)}};
-            auto ctx = std::shared_ptr<celix::impl::BundleContext>{new celix::impl::BundleContext{bnd}};
-            bndController = std::shared_ptr<celix::impl::BundleController>{new celix::impl::BundleController{std::move(actFactory), bnd, ctx}};
+            auto bnd = std::shared_ptr<celix::Bundle>{new celix::Bundle{bndId, this->fw, std::move(manifest)}};
+            auto ctx = std::shared_ptr<celix::BundleContext>{new celix::BundleContext{bnd}};
+            bndController = std::shared_ptr<celix::BundleController>{new celix::BundleController{std::move(actFactory), bnd, ctx}};
             bundles.entries.emplace(std::piecewise_construct,
                                      std::forward_as_tuple(bndId),
                                      std::forward_as_tuple(bndController));
@@ -137,7 +137,7 @@ public:
 
     bool uninstallBundle(long bndId) {
         bool uninstalled = false;
-        std::shared_ptr<celix::impl::BundleController> removed{nullptr};
+        std::shared_ptr<celix::BundleController> removed{nullptr};
         {
             std::lock_guard<std::mutex> lck{bundles.mutex};
             auto it = bundles.entries.find(bndId);
@@ -163,7 +163,7 @@ public:
 
     bool transitionBundleTo(long bndId, BundleState desired) {
         bool successful = false;
-        std::shared_ptr<celix::impl::BundleController> match{nullptr};
+        std::shared_ptr<celix::BundleController> match{nullptr};
         {
             std::lock_guard<std::mutex> lck{bundles.mutex};
             auto it = bundles.entries.find(bndId);
@@ -184,7 +184,7 @@ public:
             use(*this);
             called = true;
         } else {
-            std::shared_ptr<celix::impl::BundleController> match = nullptr;
+            std::shared_ptr<celix::BundleController> match = nullptr;
             {
                 std::lock_guard<std::mutex> lck{bundles.mutex};
                 auto it = bundles.entries.find(bndId);
@@ -203,7 +203,7 @@ public:
     }
 
     int useBundles(std::function<void(const celix::IBundle &bnd)> use, bool includeFramework) const {
-        std::map<long, std::shared_ptr<celix::impl::BundleController>> useBundles{};
+        std::map<long, std::shared_ptr<celix::BundleController>> useBundles{};
         {
             std::lock_guard<std::mutex> lck{bundles.mutex};
             for (const auto &it : bundles.entries) {
@@ -319,7 +319,7 @@ private:
 
 
     struct {
-        std::unordered_map<long, std::shared_ptr<celix::impl::BundleController>> entries{};
+        std::unordered_map<long, std::shared_ptr<celix::BundleController>> entries{};
         long nextBundleId = 2;
         mutable std::mutex mutex{};
     } bundles{};
@@ -345,7 +345,7 @@ celix::Framework::Framework(Framework &&rhs) = default;
 celix::Framework& celix::Framework::operator=(Framework&& rhs) = default;
 
 
-long celix::Framework::installBundle(std::string name, std::function<celix::IBundleActivator*(std::shared_ptr<celix::IBundleContext>)> actFactory, celix::Properties manifest, bool autoStart) {
+long celix::Framework::installBundle(std::string name, std::function<celix::IBundleActivator*(std::shared_ptr<celix::BundleContext>)> actFactory, celix::Properties manifest, bool autoStart) {
     return pimpl->installBundle(std::move(name), actFactory, std::move(manifest), autoStart);
 }
 
@@ -373,7 +373,7 @@ bool celix::Framework::waitForShutdown() const { return pimpl->waitForShutdown()
 
 void celix::registerStaticBundle(
         std::string symbolicName,
-        std::function<celix::IBundleActivator*(std::shared_ptr<celix::IBundleContext>)> bundleActivatorFactory,
+        std::function<celix::IBundleActivator*(std::shared_ptr<celix::BundleContext>)> bundleActivatorFactory,
         celix::Properties manifest) {
     std::lock_guard<std::mutex> lck{staticRegistry.mutex};
     for (auto fw : staticRegistry.frameworks) {

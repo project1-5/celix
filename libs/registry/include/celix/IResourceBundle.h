@@ -20,6 +20,8 @@
 #ifndef CXX_CELIX_IRESOURCEBUNDLE_H
 #define CXX_CELIX_IRESOURCEBUNDLE_H
 
+#include <string>
+
 namespace celix {
 
     class IResourceBundle {

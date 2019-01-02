@@ -31,6 +31,7 @@ add_library(celix_cxx_shell SHARED
         src/HelpCommand.cc
         src/StopAndStartCommand.cc
         src/InspectCommand.cc
+        src/QueryCommand.cc
 )
 target_include_directories(celix_cxx_shell PRIVATE src)
 target_link_libraries(celix_cxx_shell PRIVATE celix_cxx_shell_api)

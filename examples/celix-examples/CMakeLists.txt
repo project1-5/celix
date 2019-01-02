@@ -24,13 +24,13 @@ if (EXAMPLES)
     add_definitions(-DADD_CELIX_DEPRECATED_WARNING) #ensure that no deprecated api is used in the examples
 
     add_subdirectory(bundle_example_c)
-    add_subdirectory(bundle_example_cxx)
+    #TODO add_subdirectory(bundle_example_cxx)
 
     add_subdirectory(services_example_c)
-    add_subdirectory(services_example_cxx)
+    #TODO add_subdirectory(services_example_cxx)
 
     add_subdirectory(dm_example)
-    add_subdirectory(dm_example_cxx)
+    #TODO add_subdirectory(dm_example_cxx)
 
     if (NOT ANDROID)
         add_subdirectory(civetweb)

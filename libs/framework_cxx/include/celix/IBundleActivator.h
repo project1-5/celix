@@ -20,10 +20,6 @@
 #ifndef CXX_CELIX_IBUNDLEACTIVATOR_H
 #define CXX_CELIX_IBUNDLEACTIVATOR_H
 
-#include <memory>
-
-#include "IBundleContext.h"
-
 namespace celix {
     /**
      * The BundleActivator.

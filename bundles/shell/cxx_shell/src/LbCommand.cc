@@ -24,7 +24,7 @@
 namespace {
     class LbCommand : public celix::IShellCommand {
     public:
-        LbCommand(std::shared_ptr<celix::IBundleContext> _ctx) : ctx{std::move(_ctx)} {}
+        LbCommand(std::shared_ptr<celix::BundleContext> _ctx) : ctx{std::move(_ctx)} {}
 
         void executeCommand(const std::string &, const std::vector<std::string> &cmdArgs, std::ostream &out,
                             std::ostream &) noexcept override {
@@ -39,11 +39,11 @@ namespace {
         }
 
     private:
-        std::shared_ptr<celix::IBundleContext> ctx;
+        std::shared_ptr<celix::BundleContext> ctx;
     };
 }
 
-celix::ServiceRegistration impl::registerLb(std::shared_ptr<celix::IBundleContext> ctx) {
+celix::ServiceRegistration impl::registerLb(std::shared_ptr<celix::BundleContext> ctx) {
     celix::Properties props{};
     props[celix::IShellCommand::COMMAND_NAME] = "lb";
     props[celix::IShellCommand::COMMAND_USAGE] = "list bundles. Default only the groupless bundles are listed. Use -a to list all bundles." \

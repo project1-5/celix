@@ -18,13 +18,13 @@
 add_celix_bundle(shell_example_c SOURCES src/activator.c VERSION 1.0.0)
 target_link_libraries(shell_example_c PRIVATE Celix::shell_api)
 
-add_celix_bundle(shell_example_cxx SOURCES src/Activator.cc VERSION 1.0.0)
-target_link_libraries(shell_example_cxx PRIVATE Celix::shell_api)
+#TODO add_celix_ bundle(shell_example_cxx SOURCES src/Activator.cc VERSION 1.0.0)
+#TODO target_link_libraries(shell_example_cxx PRIVATE Celix::shell_api)
 
 add_celix_container(shell_example
     BUNDLES
         Celix::shell
         Celix::shell_tui
         shell_example_c
-        shell_example_cxx
+        #shell_example_cxx
 )

@@ -27,7 +27,7 @@ namespace {
 
     class Shell : public celix::IShell {
     public:
-        Shell(std::shared_ptr<celix::IBundleContext> _ctx) : ctx{std::move(_ctx)} {}
+        Shell(std::shared_ptr<celix::BundleContext> _ctx) : ctx{std::move(_ctx)} {}
 
         bool executeCommandLine(const std::string &commandLine, std::ostream &out, std::ostream &err) noexcept override {
             std::string cmdName{};
@@ -72,18 +72,19 @@ namespace {
             return commandCalled;
         }
     private:
-        std::shared_ptr<celix::IBundleContext> ctx;
+        std::shared_ptr<celix::BundleContext> ctx;
     };
 
     class ShellBundleActivator : public celix::IBundleActivator {
     public:
-        ShellBundleActivator(std::shared_ptr<celix::IBundleContext> ctx) {
+        ShellBundleActivator(std::shared_ptr<celix::BundleContext> ctx) {
             //TODO ensure fixed framework thread that call ctor/dtor bundle activators
             registrations.push_back(impl::registerLb(ctx));
             registrations.push_back(impl::registerHelp(ctx));
             registrations.push_back(impl::registerStop(ctx));
             registrations.push_back(impl::registerStart(ctx));
             registrations.push_back(impl::registerInspect(ctx));
+            registrations.push_back(impl::registerQuery(ctx));
 
             registrations.push_back(ctx->registerService(std::shared_ptr<celix::IShell>{new Shell{ctx}}));
         }

@@ -17,19 +17,100 @@
  *under the License.
  */
 
+
+#include <thread>
+
 #include "gtest/gtest.h"
 
 #include "celix/ServiceRegistry.h"
 #include "celix/Constants.h"
 
-class RegistryConcurrentcyTest : public ::testing::Test {
+class RegistryConcurrencyTest : public ::testing::Test {
 public:
-    RegistryConcurrentcyTest() {}
-    ~RegistryConcurrentcyTest(){}
+    RegistryConcurrencyTest() {}
 
-    celix::ServiceRegistry& registry() { return reg; }
+    ~RegistryConcurrencyTest() {}
+
+    celix::ServiceRegistry &registry() { return reg; }
+
 private:
     celix::ServiceRegistry reg{"C++"};
+};
+
+
+TEST_F(RegistryConcurrencyTest, ServiceRegistrationTest) {
+    struct calc {
+        int (*calc)(int);
+    };
+
+    calc svc{};
+    svc.calc = [](int a) {
+        return a * 42;
+    };
+
+    auto svcReg = registry().registerService(svc);
+    EXPECT_GE(svcReg.serviceId(), 0);
+
+    struct sync {
+        std::mutex mutex{};
+        std::condition_variable sync{};
+        bool inUseCall{false};
+        bool readyToExitUseCall{false};
+        bool unregister{false};
+        int result{0};
+    };
+    struct sync callInfo{};
+
+    auto use = [&callInfo](calc &svc) {
+        std::cout << "setting isUseCall to true and syncing on readyToExitUseCall" << std::endl;
+        std::unique_lock<std::mutex> lock(callInfo.mutex);
+        callInfo.inUseCall = true;
+        callInfo.sync.notify_all();
+        callInfo.sync.wait(lock, [&callInfo]{return callInfo.readyToExitUseCall;});
+        lock.unlock();
+
+        std::cout << "Calling calc " << std::endl;
+        int tmp = svc.calc(2);
+        callInfo.result = tmp;
+    };
+
+    auto call = [&] {
+        bool called = registry().useServiceWithId<calc>(svcReg.serviceId(), use);
+        EXPECT_TRUE(called);
+        EXPECT_EQ(84, callInfo.result);
+    };
+    std::thread useThread{call};
+
+
+    std::thread unregisterThread{[&]{
+        std::cout << "syncing to wait if use function is called ..." << std::endl;
+        std::unique_lock<std::mutex> lock(callInfo.mutex);
+        callInfo.sync.wait(lock, [&]{return callInfo.inUseCall;});
+        lock.unlock();
+        std::cout << "trying to unregister ..." << std::endl;
+        svcReg.unregister();
+        std::cout << "done unregistering" << std::endl;
+    }};
+
+
+    //sleep 100 milli to give unregister a change to sink in
+    std::cout << "before sleep" << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::cout << "after sleep" << std::endl;
+
+
+    std::cout << "setting readyToExitUseCall and notify" << std::endl;
+    std::unique_lock<std::mutex> lock(callInfo.mutex);
+    callInfo.readyToExitUseCall = true;
+    lock.unlock();
+    callInfo.sync.notify_all();
+
+    useThread.join();
+    std::cout << "use thread joined" << std::endl;
+    unregisterThread.join();
+    std::cout << "unregister thread joined" << std::endl;
+};
+
 
 class ICalc {
 public:
@@ -44,17 +125,18 @@ public:
     double calc() override {
         double val = 1.0;
         std::lock_guard<std::mutex> lck{mutex};
-        for (auto *calc : childern) {
+        for (auto *calc : childs) {
             val *= calc->calc();
         }
         return val;
     }
 private:
-    std::mutex mutex{}
-    std::vector<ICalc*> childern{};
+    std::mutex mutex{};
+    std::vector<ICalc*> childs{};
 };
 
 class LeafCalc : public ICalc {
+
 public:
     virtual ~LeafCalc() = default;
 
@@ -65,8 +147,7 @@ private:
     double const seed = std::rand() / 100.0;
 };
 
-
-TEST_F(RegistryConcurrentcyTest, ServiceRegistrationTest) {
+TEST_F(RegistryConcurrencyTest, ManyThreadsTest) {
 //TODO start many thread and cals using the tiers of other calcs eventually leading ot leafs and try to break the registry.
 //tier 1 : NodeCalc
 //tier 2 : NodeCalc

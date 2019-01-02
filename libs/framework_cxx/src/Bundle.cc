@@ -17,9 +17,21 @@
  *under the License.
  */
 
-#include "gtest/gtest.h"
+#include <string>
 
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+#include "Bundle.h"
+
+bool celix::Bundle::has(const std::string &) const noexcept { return false; } //TODO
+
+bool celix::Bundle::isDir(const std::string &) const noexcept { return false; } //TODO
+
+bool celix::Bundle::isFile(const std::string &) const noexcept { return false; } //TODO
+
+std::vector <std::string> celix::Bundle::readDir(const std::string &) const noexcept { //TODO
+    return std::vector < std::string > {};
+}
+
+const std::string& celix::Bundle::root() const noexcept { //TODO
+    static std::string empty{};
+    return empty;
 }

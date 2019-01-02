@@ -22,6 +22,7 @@ set(SOURCES
         src/Registry_tests.cc
         src/Filter_tests.cc
         src/ServiceTracking_tests.cc
+        src/RegistryConcurrency_tests.cc
 )
 add_executable(celix_registry_tests ${SOURCES})
 target_link_libraries(celix_registry_tests PRIVATE gtest glog::glog celix::registry)

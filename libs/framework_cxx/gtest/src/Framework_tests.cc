@@ -46,7 +46,7 @@ TEST_F(FrameworkTest, CreateDestroy) {
 
 class EmbeddedActivator : public celix::IBundleActivator {
 public:
-    EmbeddedActivator(std::shared_ptr<celix::IBundleContext>) {
+    EmbeddedActivator(std::shared_ptr<celix::BundleContext>) {
         startCount++;
     }
 
@@ -65,7 +65,7 @@ TEST_F(FrameworkTest, InstallBundle) {
     EmbeddedActivator::startCount = 0;
     EmbeddedActivator::stopCount = 0;
 
-    auto actFactory = [](std::shared_ptr<celix::IBundleContext> ctx) -> celix::IBundleActivator* {
+    auto actFactory = [](std::shared_ptr<celix::BundleContext> ctx) -> celix::IBundleActivator* {
         return new EmbeddedActivator{std::move(ctx)};
     };
     long bndId1 = framework().installBundle("embedded", actFactory);
@@ -102,7 +102,7 @@ TEST_F(FrameworkTest, StaticBundleTest) {
     };
 
     int count = 0;
-    auto factory = [&](std::shared_ptr<celix::IBundleContext>) -> celix::IBundleActivator * {
+    auto factory = [&](std::shared_ptr<celix::BundleContext>) -> celix::IBundleActivator * {
         count++;
         return new EmbeddedActivator{};
     };

@@ -17,19 +17,26 @@
  *under the License.
  */
 
-#ifndef CXX_CELIX_IBUNDLECONTEXT_H
-#define CXX_CELIX_IBUNDLECONTEXT_H
+#ifndef CXX_CELIX_BUNDLECONTEXT_H
+#define CXX_CELIX_BUNDLECONTEXT_H
 
+
+#include "celix/Framework.h"
 #include "celix/IBundle.h"
 
 namespace celix {
 
-    //TODO rename and drop I, because it not a complete interface (templates)
-    class IBundleContext {
+    class BundleContext {
     public:
-        virtual ~IBundleContext() = default;
+        explicit BundleContext(std::shared_ptr<celix::IBundle>);
+        ~BundleContext();
 
-        virtual std::shared_ptr<celix::IBundle> bundle() const noexcept = 0;
+        BundleContext(celix::BundleContext &&) = delete;
+        BundleContext(const celix::BundleContext &) = delete;
+        BundleContext& operator=(celix::BundleContext &&) = delete;
+        BundleContext& operator=(const celix::BundleContext &) = delete;
+
+        std::shared_ptr<celix::IBundle> bundle() const;
 
         template<typename I>
         celix::ServiceRegistration registerService(I &svc, celix::Properties props = {}) {
@@ -48,12 +55,38 @@ namespace celix {
 
         //TODO register C services
 
-        virtual bool useBundle(long bndId, std::function<void(const celix::IBundle &bnd)> use) const noexcept = 0;
-        virtual int useBundles(std::function<void(const celix::IBundle &bnd)> use, bool includeFrameworkBundle = true) const noexcept = 0;
+        bool useBundle(long bndId, std::function<void(const celix::IBundle &bnd)> use) const {
+            return bundle()->framework().useBundle(bndId, std::move(use));
+        }
 
-        virtual bool stopBundle(long bndId) noexcept = 0;
-        virtual bool startBundle(long bndId) noexcept = 0;
-        //TODO install / uninstall bundles
+        int useBundles(std::function<void(const celix::IBundle &bnd)> use, bool includeFrameworkBundle = true) const {
+            return bundle()->framework().useBundles(std::move(use), includeFrameworkBundle);
+        }
+
+        bool stopBundle(long bndId) {
+            return bundle()->framework().stopBundle(bndId);
+        }
+
+        bool startBundle(long bndId) {
+            return bundle()->framework().startBundle(bndId);
+        }
+
+        //TODO install / uninstall bundles, trackb undles
+
+        template<typename I>
+        bool useServiceWithId(long svcId, std::function<void(I& svc)> use) const {
+            return registry().useServiceWithId<I>(svcId, use, bundle());
+        }
+
+        template<typename I>
+        bool useServiceWithId(long svcId, std::function<void(I& svc, const celix::Properties &props)> use) const {
+            return registry().useServiceWithId<I>(svcId, use, bundle());
+        }
+
+        template<typename I>
+        bool useServiceWithId(long svcId, std::function<void(I& svc, const celix::Properties &props, const celix::IResourceBundle &bnd)> use) const {
+            return registry().useServiceWithId<I>(svcId, use, bundle());
+        }
 
         template<typename I>
         bool useService(std::function<void(I &svc)> use, const std::string &filter = "") const noexcept {
@@ -68,6 +101,21 @@ namespace celix {
         template<typename I>
         bool useService(std::function<void(I &svc, const celix::Properties &props, const celix::IResourceBundle &owner)> use, const std::string &filter = "") const noexcept {
             return registry().useService<I>(std::move(use), filter, bundle());
+        }
+
+        template<typename F>
+        bool useFunctionServiceWithId(const std::string &functionName, long svcId, std::function<void(F &function)> use) const {
+            return registry().useFunctionServiceWithId<F>(functionName, svcId, use, bundle());
+        }
+
+        template<typename F>
+        bool useFunctionServiceWithId(const std::string &functionName, long svcId, std::function<void(F &function, const celix::Properties&)> use) const {
+            return registry().useFunctionServiceWithId<F>(functionName, svcId, use, bundle());
+        }
+
+        template<typename F>
+        bool useFunctionServiceWithId(const std::string &functionName, long svcId, std::function<void(F &function, const celix::Properties&, const celix::IResourceBundle&)> use) const {
+            return registry().useFunctionServiceWithId<F>(functionName, svcId, use, bundle());
         }
 
         template<typename F>
@@ -134,9 +182,13 @@ namespace celix {
         //TODO track c trackers
 
 
-        virtual celix::ServiceRegistry& registry() const noexcept = 0;
-        virtual celix::ServiceRegistry& cRegistry() const noexcept = 0;
+        celix::ServiceRegistry& registry() const;
+        celix::ServiceRegistry& cRegistry() const;
+    private:
+
+        class Impl;
+        std::unique_ptr<Impl> pimpl;
     };
 }
 
-#endif //CXX_CELIX_IBUNDLECONTEXT_H
+#endif //CXX_CELIX_BUNDLECONTEXT_H

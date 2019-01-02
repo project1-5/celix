@@ -23,7 +23,9 @@
 #include "celix/Constants.h"
 #include "celix/Filter.h"
 #include "celix/ServiceRegistry.h"
-#include "celix/Framework.h"
 #include "celix/IBundleActivator.h"
+#include "celix/Framework.h"
+#include "celix/BundleContext.h"
+
 
 #endif //CXX_CELIX_API_H

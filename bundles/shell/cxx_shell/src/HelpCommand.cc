@@ -22,7 +22,7 @@
 #include "celix/api.h"
 #include "celix/IShellCommand.h"
 
-celix::ServiceRegistration impl::registerHelp(std::shared_ptr<celix::IBundleContext> ctx) {
+celix::ServiceRegistration impl::registerHelp(std::shared_ptr<celix::BundleContext> ctx) {
 
     celix::ShellCommandFunction help = [ctx](const std::string &, const std::vector<std::string> &commandArguments, std::ostream &out, std::ostream &) {
 
