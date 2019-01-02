@@ -24,9 +24,10 @@
 namespace celix {
 
     //NOTE manually aligned with celix_constants.h
-    static constexpr const char *const SERVICE_NAME = "service.name";
-    static constexpr const char *const SERVICE_ID = "service.id";
-    static constexpr const char *const SERVICE_RANKING = "service.ranking";
+    static constexpr const char *const SERVICE_NAME = "SERVICE_NAME";
+    static constexpr const char *const SERVICE_ID = "SERVICE_ID";
+    static constexpr const char *const SERVICE_RANKING = "SERVICE_RANKING";
+    static constexpr const char *const SERVICE_BUNDLE = "SERVICE_BUNDLE";
 
     static constexpr const char *const FRAMEWORK_UUID = "framework.uuid";
 

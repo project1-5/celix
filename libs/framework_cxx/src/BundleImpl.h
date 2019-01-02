@@ -47,20 +47,29 @@ namespace impl {
             int useBundles(std::function<void(const celix::IBundle &bnd)> use, bool includeFrameworkBundle = true) const noexcept override {
                 return bnd->framework().useBundles(std::move(use), includeFrameworkBundle);
             }
+
+            bool stopBundle(long bndId) noexcept override {
+                return bnd->framework().stopBundle(bndId);
+            }
+
+            bool startBundle(long bndId) noexcept override {
+                return bnd->framework().startBundle(bndId);
+            }
+
         private:
             celix::ServiceRegistry& registry() const noexcept override { return *reg; }
             celix::ServiceRegistry& cRegistry() const noexcept override { return *cReg; }
 
             const std::shared_ptr<celix::IBundle> bnd;
-            const std::shared_ptr<celix::ServiceRegistry> reg;
-            const std::shared_ptr<celix::ServiceRegistry> cReg;
+            celix::ServiceRegistry * const reg; //TODO make weak_ptr
+            celix::ServiceRegistry * const cReg; //TODO make weak_ptr
         };
 
 
         class Bundle : public celix::IBundle {
         public:
-            Bundle(long _bndId, celix::Framework *_fw, celix::Properties _manifest, std::shared_ptr<celix::IBundleActivator> _activator) :
-            bndId{_bndId}, fw{_fw}, bndManifest{std::move(_manifest)}, activator{std::move(_activator)} {
+            Bundle(long _bndId, celix::Framework *_fw, celix::Properties _manifest) :
+            bndId{_bndId}, fw{_fw}, bndManifest{std::move(_manifest)} {
                 bndState.store(BundleState::INSTALLED, std::memory_order_release);
             }
 
@@ -100,7 +109,6 @@ namespace impl {
             const long bndId;
             celix::Framework * const fw;
             const celix::Properties bndManifest;
-            const std::shared_ptr<celix::IBundleActivator> activator;
             std::weak_ptr<celix::IBundleContext> context;
 
             std::atomic<BundleState> bndState;
@@ -109,10 +117,10 @@ namespace impl {
     class BundleController {
     public:
         BundleController(
-                std::shared_ptr<celix::IBundleActivator> _act,
+                std::function<celix::IBundleActivator*(std::shared_ptr<celix::IBundleContext>)> _actFactory,
                 std::shared_ptr<celix::impl::Bundle> _bnd,
                 std::shared_ptr<celix::impl::BundleContext> _ctx) :
-                act{std::move(_act)}, bnd{std::move(_bnd)}, ctx{std::move(_ctx)} {}
+                actFactory{std::move(_actFactory)}, bnd{std::move(_bnd)}, ctx{std::move(_ctx)} {}
 
         //specific part
         bool transitionTo(BundleState desired) {
@@ -122,39 +130,14 @@ namespace impl {
             if (state == desired) {
                 //nop
                 success = true;
-            } else if (state == BundleState::INSTALLED && desired == BundleState::RESOLVED) {
-                //TODO create cache dir for bundle
-                bool resolved = act->resolve(ctx);
-                if (resolved) {
-                    bnd->setState(BundleState::RESOLVED);
-                    success = true;
-                } else {
-                    LOG(WARNING) << "Transition to resolved state for bundle " << bnd->symbolicName() << " (" << bnd->id() << ") failed." << std::endl;
-                }
-
-            } else if (state == BundleState::RESOLVED && desired == BundleState::ACTIVE) {
-                bool started = act->start(ctx);
-                if (started) {
-                    bnd->setState(BundleState::ACTIVE);
-                    success = true;
-                } else {
-                    LOG(WARNING) << "Transition to active state for bundle " << bnd->symbolicName() << " (" << bnd->id() << ") failed." << std::endl;
-                }
-            } else if (state == BundleState::ACTIVE && desired == BundleState::RESOLVED ) {
-                bool stopped = act->stop(ctx);
-                if (stopped) {
-                    bnd->setState(BundleState::RESOLVED);
-                    success = true;
-
-                    //TODO use custom deleter to check this (use_count call is a race condition)
-                    bool unique  = ctx.use_count() == 1;
-                    if (!unique) {
-                        LOG(WARNING) << "Bundle Context is not unique. ";
-                        LOG(WARNING) << "Check if there are still some dangling references to the context of the stopped bundle." << std::endl;
-                    }
-                } else {
-                    LOG(WARNING) << "Transition to resolved state for bundle " << bnd->symbolicName() << " (" << bnd->id() << ") failed." << std::endl;
-                }
+            } else if (state == BundleState::INSTALLED && desired == BundleState::ACTIVE) {
+                act = std::unique_ptr<celix::IBundleActivator>{actFactory(ctx)};
+                bnd->setState(BundleState::ACTIVE);
+                success = true;
+            } else if (state == BundleState::ACTIVE && desired == BundleState::INSTALLED ) {
+                act = nullptr;
+                bnd->setState(BundleState::INSTALLED);
+                success = true;
             } else {
                 //LOG(ERROR) << "Unexpected desired state " << desired << " from state " << bndState << std::endl;
                 LOG(ERROR) << "Unexpected desired/form state combination " << std::endl;
@@ -162,15 +145,15 @@ namespace impl {
             return success;
         }
 
-        std::shared_ptr<celix::IBundleActivator> activator() const { return act; }
         std::shared_ptr<celix::impl::Bundle> bundle() const { return bnd; }
         std::shared_ptr<celix::impl::BundleContext> context() const { return ctx; }
     private:
-        const std::shared_ptr<celix::IBundleActivator> act;
+        const std::function<celix::IBundleActivator*(std::shared_ptr<celix::IBundleContext>)> actFactory;
         const std::shared_ptr<celix::impl::Bundle> bnd;
         const std::shared_ptr<celix::impl::BundleContext> ctx;
 
         mutable std::mutex mutex{};
+        std::unique_ptr<celix::IBundleActivator> act{nullptr};
     };
 }
 };

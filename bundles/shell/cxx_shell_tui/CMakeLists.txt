@@ -17,25 +17,22 @@
 
 find_package(glog REQUIRED)
 
-#TODO rename to celix::shell && celix::shell_api
+#TODO rename to celix::shell_tui
 
-add_library(celix_cxx_shell_api INTERFACE)
-target_include_directories(celix_cxx_shell_api INTERFACE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
-    $<INSTALL_INTERFACE:include/celix/shell>
-)
-
-add_library(celix_cxx_shell SHARED
-        src/ShellActivator.cc
-        src/LbCommand.cc
-        src/HelpCommand.cc
-        src/StopAndStartCommand.cc
-        src/InspectCommand.cc
-)
-target_include_directories(celix_cxx_shell PRIVATE src)
-target_link_libraries(celix_cxx_shell PRIVATE celix_cxx_shell_api)
-target_link_libraries(celix_cxx_shell PUBLIC glog::glog celix_framework_cxx)
+#OR static lib, but then with all symbols to force constructor attribute
+add_library(celix_cxx_shell_tui SHARED
+        src/ShellTuiActivator.cc
+        src/shell_test.cc)
+target_include_directories(celix_cxx_shell_tui PRIVATE src)
+target_link_libraries(celix_cxx_shell_tui PRIVATE celix_cxx_shell_api)
+target_link_libraries(celix_cxx_shell_tui PUBLIC glog::glog celix_framework_cxx)
 
 #if (ENABLE_TESTING)
 #    add_subdirectory(gtest)
 #endif ()
+
+
+add_executable(shell_test
+        src/shell_test.cc
+)
+target_link_libraries(shell_test PRIVATE celix_cxx_shell celix_cxx_shell_tui)

@@ -55,6 +55,12 @@ namespace celix {
         std::string val = getProperty(props, key, std::to_string(defaultValue));
         return std::stoul(val, nullptr, 10);
     }
+
+    /*TODO
+    celix::Properties loadProperties(const std::string &path);
+    celix::Properties loadProperties(std::istream stream);
+    bool storeProperties(const celix::Properties &props, const std::string &path);
+     */
 }
 
 #endif //CXX_CELIX_PROPERTIES_H

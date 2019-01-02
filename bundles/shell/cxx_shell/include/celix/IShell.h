@@ -29,7 +29,7 @@ namespace celix {
 
         virtual ~IShell() = default;
 
-        virtual bool executeCommand(const std::string &commandLine, std::ostream &out, std::ostream &err) noexcept = 0;
+        virtual bool executeCommandLine(const std::string &commandLine, std::ostream &out, std::ostream &err) noexcept = 0;
     };
 }
 

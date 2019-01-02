@@ -18,6 +18,7 @@
  */
 
 #include <string>
+#include <vector>
 #include <iostream>
 
 #ifndef CXX_CELIX_ISHELLCOMMAND_H
@@ -29,20 +30,21 @@ namespace celix {
     public:
         static constexpr const char * const SERVICE_FQN = "celix::IShellCommand [Version 1]";
 
-        static constexpr const char * const COMMAND_NAME = "name";
-        static constexpr const char * const COMMAND_USAGE = "usage";
-        static constexpr const char * const COMMAND_DESCRIPTION = "description";
+        static constexpr const char * const COMMAND_NAME = "COMMAND_NAME";
+        static constexpr const char * const COMMAND_USAGE = "COMMAND_USAGE";
+        static constexpr const char * const COMMAND_DESCRIPTION = "COMMAND_DESCRIPTION";
 
         virtual ~IShellCommand() = default;
 
-        virtual void executeCommand(const std::string &commandLine, std::ostream &out, std::ostream &err) noexcept = 0;
+        virtual void executeCommand(const std::string &cmdName, const std::vector<std::string> &cmdArgs, std::ostream &out, std::ostream &err) noexcept = 0;
     };
 
-    using ShellCommandFunction = std::function<void(const std::string &commandLine, std::ostream &out, std::ostream &err)>;
     static constexpr const char * const SHELL_COMMAND_FUNCTION_SERVICE_FQN = "celix::ShellFunction [Version 1]";
-    static constexpr const char * const SHELL_COMMAND_FUNCTION_COMMAND_NAME = "name";
-    static constexpr const char * const SHELL_COMMAND_FUNCTION_COMMAND_USAGE = "usage";
-    static constexpr const char * const SHELL_COMMAND_FUNCTION_COMMAND_DESCRIPTION = "description";
+    static constexpr const char * const SHELL_COMMAND_FUNCTION_COMMAND_NAME = "COMMAND_NAME";
+    static constexpr const char * const SHELL_COMMAND_FUNCTION_COMMAND_USAGE = "COMMAND_USAGE";
+    static constexpr const char * const SHELL_COMMAND_FUNCTION_COMMAND_DESCRIPTION = "COMMAND_DESCRIPTION";
+    using ShellCommandFunction = std::function<void(const std::string &cmdName, const std::vector<std::string> &cmdArgs, std::ostream &out, std::ostream &err)>;
+
 }
 
 #endif //CXX_CELIX_ISHELLCOMMAND_H

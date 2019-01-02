@@ -17,26 +17,21 @@
  *under the License.
  */
 
-#ifndef CXX_CELIX_IBUNDLEACTIVATOR_H
-#define CXX_CELIX_IBUNDLEACTIVATOR_H
+#ifndef CELIX_COMMANDS_H
+#define CELIX_COMMANDS_H
 
-#include <memory>
+#include "celix/api.h"
 
-#include "IBundleContext.h"
+namespace impl {
+    celix::ServiceRegistration registerLb(std::shared_ptr<celix::IBundleContext> ctx);
+    celix::ServiceRegistration registerHelp(std::shared_ptr<celix::IBundleContext> ctx);
+    celix::ServiceRegistration registerStop(std::shared_ptr<celix::IBundleContext> ctx);
+    celix::ServiceRegistration registerStart(std::shared_ptr<celix::IBundleContext> ctx);
+    celix::ServiceRegistration registerInspect(std::shared_ptr<celix::IBundleContext> ctx);
 
-namespace celix {
-    /**
-     * The BundleActivator.
-     *
-     * This is a marker interface and contains no virtual methods.
-     *
-     * The Celix Framework will expect a constructor with a std::shared_ptr<celix::IBundleContext> argument on the
-     * contrete bundle activator. RAII will be used to start (on ctor) and stop (on dtor) a bundle.
-     */
-    class IBundleActivator {
-    public:
-        virtual ~IBundleActivator() = default;
-    };
+    //query services, trackers & meta trackers TODO
+    // celix::ServiceRegistration registerQuery(std::shared_ptr<celix::IBundleContext> ctx);
 }
 
-#endif //CXX_CELIX_IBUNDLEACTIVATOR_H
+
+#endif //CELIX_COMMANDS_H

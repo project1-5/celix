@@ -23,7 +23,7 @@
 #include <mutex>
 #include <set>
 #include <utility>
-#include <thread>
+#include <future>
 
 #include <glog/logging.h>
 
@@ -85,13 +85,12 @@ namespace {
         bool factory() const { return svcFactory != nullptr; }
 
         void incrUsage() const {
-            LOG(WARNING) << "TODO use shared_ptr unique instead ?? how to sync?";
+            //TODO look at atomics or shared_ptr to handled to counts / sync
             std::lock_guard<std::mutex> lck{mutex};
             usage += 1;
         }
 
         void decrUsage() const {
-            LOG(WARNING) << "TODO use shared_ptr unique instead ?? how is sync?";
             std::lock_guard<std::mutex> lck{mutex};
             usage -= 1;
             cond.notify_all();
@@ -140,17 +139,15 @@ namespace {
         ~SvcTrackerEntry() {}
 
         void clear() {
-            //TODO update, make special rem (e.g. only call the use set callbacks once with a nullptr)
             std::vector<std::shared_ptr<const SvcEntry>> removeEntries{};
             {
                 std::lock_guard<std::mutex> lck{tracked.mutex};
-                for (auto &entry : tracked.entries) {
-                    removeEntries.push_back(entry);
+                for (const auto &entry : tracked.entries) {
+                    removeEntries.push_back(entry.first);
                 }
-                tracked.entries.clear();
             }
             for (auto &entry : removeEntries) {
-                remMatch(entry); //note fill try to erase entry from entries again, TODO check if this is safe
+                remMatch(entry);
             }
         }
 
@@ -171,56 +168,74 @@ namespace {
 
         void addMatch(std::shared_ptr<const SvcEntry> entry) {
             //increase usage so that services cannot be removed while a service tracker is still active
+
+            //new custom deleter which arranges the count & sync for the used services
+
             entry->incrUsage();
+
+            void *rawSvc = entry->service(*owner);
+            //NOTE creating a shared_ptr with a custom deleter, so that the SvcEntry usage is synced with this shared_ptr.
+            auto svc = std::shared_ptr<void>{rawSvc, [entry](void *) {
+                entry->decrUsage();
+            }};
 
             {
                 std::lock_guard<std::mutex> lck{tracked.mutex};
-                tracked.entries.insert(entry);
+                tracked.entries.emplace(entry, svc);
             }
 
             //call callbacks
             callSetCallbacks();
-            callAddRemoveCallbacks(entry, true);
+            callAddRemoveCallbacks(entry, svc, true);
             callUpdateCallbacks();
         }
 
         void remMatch(const std::shared_ptr<const SvcEntry> &entry) {
+            std::shared_ptr<void> svc{};
             {
                 std::lock_guard<std::mutex> lck{tracked.mutex};
-                tracked.entries.erase(entry);
+                auto it = tracked.entries.find(entry);
+                svc = it->second;
+                tracked.entries.erase(it);
             }
 
             //call callbacks
-            callSetCallbacks();
-            callAddRemoveCallbacks(entry, false);
+            callSetCallbacks(); //note also removed highest if that was set to this svc
+            callAddRemoveCallbacks(entry, svc, false);
             callUpdateCallbacks();
 
-            //decrease usage so that services cannot be removed while a service tracker is still active
-            entry->decrUsage();
+
+            //note sync will be done on the SvcEntry usage, which is controlled by the tracker svc shared ptr
         }
 
-        void callAddRemoveCallbacks(const std::shared_ptr<const SvcEntry> &updatedEntry, bool add) {
+        void callAddRemoveCallbacks(const std::shared_ptr<const SvcEntry> &entry, std::shared_ptr<void> &svc, bool add) {
             auto &update = add ? opts.add : opts.remove;
-            if (update != nullptr) {
-                void *svc = updatedEntry->service(*owner);
+            auto &updateWithProps = add ? opts.addWithProperties : opts.removeWithProperties;
+            auto &updateWithOwner = add ? opts.addWithOwner : opts.removeWithOwner;
+            if (update) {
                 update(svc);
             }
-            //TODO rest of add/remove
+            if (updateWithProps) {
+                updateWithProps(svc, entry->props);
+            }
+            if (updateWithOwner) {
+                updateWithOwner(svc, entry->props, *entry->owner);
+            }
         }
 
         void callSetCallbacks() {
-            std::shared_ptr<const SvcEntry> currentHighest;
+            std::shared_ptr<void> currentHighestSvc{};
+            std::shared_ptr<const SvcEntry> currentHighestSvcEntry{};
             bool highestUpdated = false;
             {
                 std::lock_guard<std::mutex> lck{tracked.mutex};
                 auto begin = tracked.entries.begin();
-                if (begin == tracked.entries.end()) {
-                    currentHighest = nullptr;
-                } else {
-                    currentHighest = *begin;
+                if (begin != tracked.entries.end()) {
+                    currentHighestSvc = begin->second;
+                    currentHighestSvcEntry = begin->first;
                 }
-                if (currentHighest != tracked.highest) {
-                    tracked.highest = currentHighest;
+                if (currentHighestSvc != tracked.highest) {
+                    tracked.highest = currentHighestSvc;
                     highestUpdated = true;
                 }
             }
@@ -228,43 +243,58 @@ namespace {
             //TODO race condition. highest can be updated because lock is released.
 
             if (highestUpdated) {
-                void *svc = currentHighest == nullptr ? nullptr : currentHighest->service(*owner);
-                if (opts.set != nullptr) {
-                    opts.set(svc);
+                if (opts.set) {
+                    opts.set(currentHighestSvc); //note can be nullptr
                 }
-                //TODO rest of set
+                if (opts.setWithProperties) {
+                    opts.setWithProperties(currentHighestSvc, currentHighestSvcEntry->props);
+                }
+                if (opts.setWithOwner) {
+                    opts.setWithOwner(currentHighestSvc, currentHighestSvcEntry->props, *currentHighestSvcEntry->owner);
+                }
             }
         }
 
         void callUpdateCallbacks() {
-            if (opts.update) {
-                std::vector<void *> rankedServices{};
-                {
-                    std::lock_guard<std::mutex> lck{tracked.mutex};
-                    rankedServices.reserve(tracked.entries.size());
-                    for (auto &tracked : tracked.entries) {
-                        rankedServices.push_back(tracked->service(*owner));
-                    }
+            std::vector<std::tuple<std::shared_ptr<void>, const celix::Properties*, const celix::IResourceBundle*>> rankedServices{};
+            if (opts.update || opts.updateWithProperties || opts.updateWithOwner) {
+                //fill vector
+                std::lock_guard<std::mutex> lck{tracked.mutex};
+                rankedServices.reserve(tracked.entries.size());
+                for (auto &tracked : tracked.entries) {
+                    rankedServices.push_back(std::make_tuple(tracked.second, &tracked.first->props, tracked.first->owner.get()));
                 }
-                opts.update(std::move(rankedServices));
             }
-            //TODO rest of the update calls
+            if (opts.update) {
+                std::vector<std::shared_ptr<void>> rnk{};
+                for (auto &tuple : rankedServices) {
+                    rnk.push_back(std::get<0>(tuple));
+                }
+                opts.update(std::move(rnk));
+            }
+            if (opts.updateWithProperties) {
+                std::vector<std::tuple<std::shared_ptr<void>, const celix::Properties*>> rnk{};
+                for (auto &tuple : rankedServices) {
+                    rnk.push_back(std::make_pair(std::get<0>(tuple), std::get<1>(tuple)));
+                }
+                opts.updateWithProperties(std::move(rnk));
+            }
+            if (opts.updateWithOwner) {
+                opts.updateWithOwner(std::move(rankedServices));
+            }
         }
 
         int count() const {
-            LOG(INFO) << "TODO use shared_ptr count instead";
             std::lock_guard<std::mutex> lck{tracked.mutex};
             return (int)tracked.entries.size();
         }
 
         void incrUsage() const {
-            LOG(INFO) << "TODO use shared_ptr count instead";
             std::lock_guard<std::mutex> lck{mutex};
             usage += 1;
         }
 
         void decrUsage() const {
-            LOG(INFO) << "TODO use shared_ptr count instead";
             std::lock_guard<std::mutex> lck{mutex};
             usage -= 1;
             cond.notify_all();
@@ -277,12 +307,11 @@ namespace {
     private:
         struct {
             mutable std::mutex mutex; //protects matchedEntries & highestRanking
-            std::set<std::shared_ptr<const SvcEntry>, SvcEntryLess> entries{};
-            std::shared_ptr<const SvcEntry> highest{};
+            std::map<std::shared_ptr<const SvcEntry>, std::shared_ptr<void>, SvcEntryLess> entries{};
+            std::shared_ptr<void> highest{};
         } tracked{};
 
 
-        //sync TODO refactor to atomics
         mutable std::mutex mutex{};
         mutable std::condition_variable cond{};
         mutable int usage{1};
@@ -354,6 +383,7 @@ public:
 
         //Add to registry
         std::shared_ptr<const celix::IResourceBundle> bnd = owner ? owner : emptyBundle;
+        props[celix::SERVICE_BUNDLE] = std::to_string(bnd->id());
 
         if (factory) {
             VLOG(1) << "Registering service factory '" << svcName << "' from bundle id " << owner->id() << std::endl;
@@ -369,8 +399,8 @@ public:
         services.cache[entry->svcId] = entry;
 
         //update trackers
-        std::thread updateThread{[&]{updateTrackers(entry, true);}};
-        updateThread.join();
+        auto future = std::async([&]{updateTrackers(entry, true);});
+        future.wait();
         entry->decrUsage(); //note usage started at 1 during creation
 
 
@@ -395,17 +425,22 @@ public:
 
         {
             std::lock_guard<std::mutex> lock{services.mutex};
-            const auto it = services.cache.find(svcId);
-            if (it != services.cache.end()) {
-                match = it->second;
-                services.cache.erase(it);
-                services.registry.at(match->svcName).erase(match);
+            const auto cacheIter = services.cache.find(svcId);
+            if (cacheIter != services.cache.end()) {
+                match = cacheIter->second;
+                services.cache.erase(cacheIter);
+                const auto svcSetIter = services.registry.find(match->svcName);
+                svcSetIter->second.erase(match);
+                if (svcSetIter->second.empty()) {
+                    //last entry in the registry for this service name.
+                    services.registry.erase(svcSetIter);
+                }
             }
         }
 
         if (match) {
-            std::thread updateThread{[&]{updateTrackers(match, false);}};
-            updateThread.join();
+            auto future = std::async([&]{updateTrackers(match, false);});
+            future.wait();
             match->waitTillUnused();
         } else {
             LOG(WARNING) << "Cannot unregister service. Unknown service id: " << svcId << "." << std::endl;
@@ -430,8 +465,8 @@ public:
 
         if (match) {
             match->waitTillUnused();
-            std::thread clearThread{[&]{match->clear();}}; //ensure that all service are removed using the callbacks
-            clearThread.join();
+            auto future = std::async([&]{match->clear();}); //ensure that all service are removed using the callbacks
+            future.wait();
         } else {
             LOG(WARNING) << "Cannot remove tracker. Unknown tracker id: " << trkId << "." << std::endl;
         }
@@ -457,6 +492,15 @@ public:
             }
             match->decrUsage();
         }
+    }
+
+    std::vector<std::string> listAllRegisteredServiceNames() const {
+        std::vector<std::string> result{};
+        std::lock_guard<std::mutex> lck{services.mutex};
+        for (const auto& pair : services.registry) {
+            result.emplace_back(std::string{pair.first});
+        }
+        return result;
     }
 };
 
@@ -496,7 +540,9 @@ celix::ServiceRegistration celix::ServiceRegistry::registerServiceFactory(std::s
 //TODO add useService(s) call to ServiceTracker object for fast service access
 
 //TODO move to Impl
-celix::ServiceTracker celix::ServiceRegistry::trackServices(std::string svcName, celix::ServiceTrackerOptions<void> options, std::shared_ptr<const celix::IResourceBundle> requester) {
+celix::ServiceTracker celix::ServiceRegistry::trackAnyServices(std::string svcName,
+                                                               celix::ServiceTrackerOptions<void> options,
+                                                               std::shared_ptr<const celix::IResourceBundle> requester) {
     //TODO create new tracker event and start new thread to update track trackers
     long trkId = 0;
     {
@@ -523,13 +569,13 @@ celix::ServiceTracker celix::ServiceRegistry::trackServices(std::string svcName,
             pimpl->trackers.registry[trkEntry->svcName].insert(trkEntry);
             pimpl->trackers.cache[trkEntry->id] = trkEntry;
         }
-        std::thread updateThread{[&]{
+        auto future = std::async([&]{
             for (auto &svcEntry : services) {
                 trkEntry->addMatch(svcEntry);
                 svcEntry->decrUsage();
             }
-        }};
-        updateThread.join();
+        });
+        future.wait();
         trkEntry->decrUsage(); //note trkEntry usage started at 1
 
         auto untrack = [this, trkId]() -> void {
@@ -556,16 +602,16 @@ long celix::ServiceRegistry::nrOfServiceTrackers() const {
         
 //TODO unregister tracker with remove tracker event in a new thread
 //TODO move to Impl
-std::vector<long> celix::ServiceRegistry::findServices(const std::string &svcName, const std::string &rawFilter) const {
+std::vector<long> celix::ServiceRegistry::findAnyServices(const std::string &name, const std::string &f) const {
     std::vector<long> result{};
-    celix::Filter filter = rawFilter;
+    celix::Filter filter = f;
     if (!filter.valid()) {
-        LOG(WARNING) << "Invalid filter (" << rawFilter << ") provided. Cannot find services" << std::endl;
+        LOG(WARNING) << "Invalid filter (" << f << ") provided. Cannot find services" << std::endl;
         return result;
     }
 
     std::lock_guard<std::mutex> lock{pimpl->services.mutex};
-    const auto it = pimpl->services.registry.find(svcName);
+    const auto it = pimpl->services.registry.find(name);
     if (it != pimpl->services.registry.end()) {
         const auto &services = it->second;
         for (const auto &visit : services) {
@@ -584,10 +630,14 @@ long celix::ServiceRegistry::nrOfRegisteredServices() const {
 }
 
 //TODO move to Impl
-int celix::ServiceRegistry::useServices(const std::string &svcName, std::function<void(void *svc, const celix::Properties &props, const celix::IResourceBundle &bnd)> &use, const std::string &rawFilter, std::shared_ptr<const celix::IResourceBundle> requester) const {
-    celix::Filter filter = rawFilter;
+int celix::ServiceRegistry::useAnyServices(const std::string &svcName,
+                                           std::function<void(std::shared_ptr<void> svc, const celix::Properties &props,
+                                                              const celix::IResourceBundle &bnd)> use,
+                                           const std::string &f,
+                                           std::shared_ptr<const celix::IResourceBundle> requester) const {
+    celix::Filter filter = f;
     if (!filter.valid()) {
-        LOG(WARNING) << "Invalid filter (" << rawFilter << ") provided. Cannot find services" << std::endl;
+        LOG(WARNING) << "Invalid filter (" << f << ") provided. Cannot find services" << std::endl;
         return 0;
     }
 
@@ -607,7 +657,11 @@ int celix::ServiceRegistry::useServices(const std::string &svcName, std::functio
     }
 
     for (const std::shared_ptr<const SvcEntry> &entry : matches) {
-        use(entry->service(*requester), entry->props, *entry->owner);
+        void *rawSvc = entry->service(*requester);
+        std::shared_ptr<void> svc{rawSvc, [entry](void *) {
+            entry->decrUsage();
+        }};
+        use(svc, entry->props, *entry->owner);
         entry->decrUsage();
     }
 
@@ -615,10 +669,14 @@ int celix::ServiceRegistry::useServices(const std::string &svcName, std::functio
 }
 
 //TODO move to Impl
-bool celix::ServiceRegistry::useService(const std::string &svcName, std::function<void(void *svc, const celix::Properties &props, const celix::IResourceBundle &bnd)> &use, const std::string &rawFilter, std::shared_ptr<const celix::IResourceBundle> requester) const {
-    celix::Filter filter = rawFilter;
+bool celix::ServiceRegistry::useAnyService(const std::string &svcName,
+                                           std::function<void(std::shared_ptr<void> svc, const celix::Properties &props,
+                                                              const celix::IResourceBundle &bnd)> use,
+                                           const std::string &f,
+                                           std::shared_ptr<const celix::IResourceBundle> requester) const {
+    celix::Filter filter = f;
     if (!filter.valid()) {
-        LOG(WARNING) << "Invalid filter (" << rawFilter << ") provided. Cannot find services" << std::endl;
+        LOG(WARNING) << "Invalid filter (" << f << ") provided. Cannot find services" << std::endl;
         return false;
     }
 
@@ -639,11 +697,18 @@ bool celix::ServiceRegistry::useService(const std::string &svcName, std::functio
     }
 
     if (match != nullptr) {
-        use(match->service(*requester), match->props, *match->owner);
-        match->decrUsage();
+        void *rawSvc = match->service(*requester);
+        std::shared_ptr<void> svc{rawSvc, [match](void *) {
+            match->decrUsage();
+        }};
+        use(svc, match->props, *match->owner);
     }
 
     return match != nullptr;
+}
+
+std::vector<std::string> celix::ServiceRegistry::listAllRegisteredServiceNames() const {
+    return pimpl->listAllRegisteredServiceNames();
 }
 
 /**********************************************************************************************************************

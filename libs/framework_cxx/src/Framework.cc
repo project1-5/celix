@@ -26,6 +26,7 @@
 #include <iostream>
 #include <set>
 #include <vector>
+#include <future>
 
 #include <glog/logging.h>
 
@@ -36,7 +37,7 @@
 struct StaticBundleEntry {
     const std::string symbolicName;
     const celix::Properties manifest;
-    const std::function<celix::IBundleActivator*()> activatorFactory;
+    const std::function<celix::IBundleActivator*(std::shared_ptr<celix::IBundleContext>)> activatorFactory;
 };
 
 static struct {
@@ -51,10 +52,11 @@ static void unregisterFramework(celix::Framework *fw);
 
 class celix::Framework::Impl : public IBundle {
 public:
-    Impl(celix::Framework *_fw) : fw{_fw}, bndManifest{createManifest()}, cwd{createCwd()} {}
+    Impl(celix::Framework *_fw, celix::Properties _config) : fw{_fw}, config{std::move(_config)}, bndManifest{createManifest()}, cwd{createCwd()} {}
 
     ~Impl() {
         stopFramework();
+        waitForShutdown();
     }
 
     std::vector<long> listBundles(bool includeFrameworkBundle) const {
@@ -70,9 +72,15 @@ public:
         return result;
     }
 
-    long installBundle(std::string symbolicName, std::shared_ptr<celix::IBundleActivator> activator, celix::Properties manifest, bool autoStart) {
+    long installBundle(std::string symbolicName, std::function<celix::IBundleActivator*(std::shared_ptr<celix::IBundleContext>)> actFactory, celix::Properties manifest, bool autoStart) {
+        //TODO if activator is nullptr -> use empty activator
         //TODO on separate thread ?? specific bundle resolve thread ??
         long bndId = -1L;
+        if (symbolicName.empty()) {
+            LOG(WARNING) << "Cannot install bundle with a empty symbolic name" << std::endl;
+            return bndId;
+        }
+
         std::shared_ptr<celix::impl::BundleController> bndController{nullptr};
         {
             manifest[celix::MANIFEST_BUNDLE_SYMBOLIC_NAME] = symbolicName;
@@ -88,9 +96,9 @@ public:
 
             std::lock_guard<std::mutex> lck{bundles.mutex};
             bndId = bundles.nextBundleId++;
-            auto bnd = std::shared_ptr<celix::impl::Bundle>{new celix::impl::Bundle{bndId, this->fw, std::move(manifest), std::move(activator)}};
+            auto bnd = std::shared_ptr<celix::impl::Bundle>{new celix::impl::Bundle{bndId, this->fw, std::move(manifest)}};
             auto ctx = std::shared_ptr<celix::impl::BundleContext>{new celix::impl::BundleContext{bnd}};
-            bndController = std::shared_ptr<celix::impl::BundleController>{new celix::impl::BundleController{activator, bnd, ctx}};
+            bndController = std::shared_ptr<celix::impl::BundleController>{new celix::impl::BundleController{std::move(actFactory), bnd, ctx}};
             bundles.entries.emplace(std::piecewise_construct,
                                      std::forward_as_tuple(bndId),
                                      std::forward_as_tuple(bndController));
@@ -99,26 +107,32 @@ public:
         }
 
         if (bndController) {
-            bool successful = bndController->transitionTo(BundleState::RESOLVED);
-            if (successful && autoStart) {
-                successful = bndController->transitionTo(BundleState::ACTIVE);
+            if (autoStart) {
+                bool successful = bndController->transitionTo(BundleState::ACTIVE);
                 if (!successful) {
                     LOG(WARNING) << "Cannot start bundle " << bndController->bundle()->symbolicName() << std::endl;
                 }
-            } else {
-                LOG(WARNING) << "Cannot resolve bundle " << bndController->bundle()->symbolicName() << std::endl;
             }
-            //TODO decrease bnd entry usage
         }
+
         return bndId;
     }
 
     bool startBundle(long bndId) {
-        return transitionBundleTo(bndId, BundleState::ACTIVE);
+        if (bndId == this->fwBndId) {
+            //TODO
+            return false;
+        } else {
+            return transitionBundleTo(bndId, BundleState::ACTIVE);
+        }
     }
 
     bool stopBundle(long bndId) {
-        return transitionBundleTo(bndId, BundleState::RESOLVED);
+        if (bndId == this->fwBndId) {
+            return stopFramework();
+        } else {
+            return transitionBundleTo(bndId, BundleState::INSTALLED);
+        }
     }
 
     bool uninstallBundle(long bndId) {
@@ -134,11 +148,10 @@ public:
             }
         }
         if (removed) {
-            bool resolved = removed->transitionTo(BundleState::RESOLVED);
-            if (resolved) {
-                uninstalled = true;
-                bool unique = removed.unique();
-                assert(unique); //TODO cond / wait ?
+            bool stopped = removed->transitionTo(BundleState::INSTALLED);
+            if (stopped) {
+                //TODO check and wait till bundle is not used anymore. is this needed (shared_ptr) or just let access
+                //to filesystem fail ...
             } else {
                 //add bundle again -> not uninstalled
                 std::lock_guard<std::mutex> lck{bundles.mutex};
@@ -245,15 +258,29 @@ public:
     celix::Framework& framework() const noexcept override { return *fw; }
 
     bool stopFramework() {
-        std::vector<long> bundles = listBundles(false);
-        while (!bundles.empty()) {
-            for (auto it = bundles.rbegin(); it != bundles.rend(); ++it) {
-                stopBundle(*it);
-                uninstallBundle(*it);
-            }
-            bundles = listBundles(false);
+        std::lock_guard<std::mutex> lck{shutdown.mutex};
+        if (!shutdown.shutdownStarted) {
+            shutdown.future = std::async(std::launch::async, [this]{
+                std::vector<long> bundles = listBundles(false);
+                while (!bundles.empty()) {
+                    for (auto it = bundles.rbegin(); it != bundles.rend(); ++it) {
+                        stopBundle(*it);
+                        uninstallBundle(*it);
+                    }
+                    bundles = listBundles(false);
+                }
+            });
+            shutdown.shutdownStarted = true;
+            shutdown.cv.notify_all();
         }
+        return true;
+    }
 
+    bool waitForShutdown() const {
+        std::unique_lock<std::mutex> lck{shutdown.mutex};
+        shutdown.cv.wait(lck, [this]{return this->shutdown.shutdownStarted;});
+        shutdown.future.wait();
+        lck.unlock();
         return true;
     }
 private:
@@ -275,9 +302,21 @@ private:
         }
     }
 
+    const long fwBndId = 1L;
     celix::Framework * const fw;
+    const celix::Properties config;
     const celix::Properties bndManifest;
     const std::string cwd;
+
+
+    struct {
+        mutable std::mutex mutex{};
+        mutable std::condition_variable cv{};
+        std::future<void> future{};
+        bool shutdownStarted = false;
+    } shutdown{};
+
+
 
     struct {
         std::unordered_map<long, std::shared_ptr<celix::impl::BundleController>> entries{};
@@ -295,9 +334,9 @@ private:
  * Framework
  **********************************************************************************************************************/
 
-celix::Framework::Framework() {
-    pimpl = std::unique_ptr<Impl>{new Impl{this}};
-    registerFramework(this); //TODO improve ugly.. maybe register impl.. but that is private -> so make register static member functions of impl...
+celix::Framework::Framework(celix::Properties config) {
+    pimpl = std::unique_ptr<Impl>{new Impl{this, std::move(config)}};
+    registerFramework(this);
 }
 celix::Framework::~Framework() {
     unregisterFramework(this);
@@ -305,9 +344,11 @@ celix::Framework::~Framework() {
 celix::Framework::Framework(Framework &&rhs) = default;
 celix::Framework& celix::Framework::operator=(Framework&& rhs) = default;
 
-long celix::Framework::installBundle(std::string name, std::shared_ptr<celix::IBundleActivator> activator, celix::Properties manifest, bool autoStart) {
-    return pimpl->installBundle(std::move(name), std::move(activator), std::move(manifest), autoStart);
+
+long celix::Framework::installBundle(std::string name, std::function<celix::IBundleActivator*(std::shared_ptr<celix::IBundleContext>)> actFactory, celix::Properties manifest, bool autoStart) {
+    return pimpl->installBundle(std::move(name), actFactory, std::move(manifest), autoStart);
 }
+
 
 std::vector<long> celix::Framework::listBundles(bool includeFrameworkBundle) const { return pimpl->listBundles(includeFrameworkBundle); }
 
@@ -324,23 +365,28 @@ bool celix::Framework::stopBundle(long bndId) { return pimpl->stopBundle(bndId);
 bool celix::Framework::uninstallBundle(long bndId) { return pimpl->uninstallBundle(bndId); }
 celix::ServiceRegistry& celix::Framework::registry(const std::string &lang) { return pimpl->registry(lang); }
 
+bool celix::Framework::waitForShutdown() const { return pimpl->waitForShutdown(); }
+
 /***********************************************************************************************************************
  * Celix 'global' functions
  **********************************************************************************************************************/
 
-void celix::registerStaticBundle(std::string symbolicName, const celix::StaticBundleOptions &opts) {
+void celix::registerStaticBundle(
+        std::string symbolicName,
+        std::function<celix::IBundleActivator*(std::shared_ptr<celix::IBundleContext>)> bundleActivatorFactory,
+        celix::Properties manifest) {
     std::lock_guard<std::mutex> lck{staticRegistry.mutex};
-    staticRegistry.bundles.emplace_back(StaticBundleEntry{.symbolicName = std::move(symbolicName), .manifest = opts.manifest, .activatorFactory = opts.bundleActivatorFactory});
     for (auto fw : staticRegistry.frameworks) {
-        fw->installBundle(symbolicName, std::shared_ptr<celix::IBundleActivator>{opts.bundleActivatorFactory()}, opts.manifest);
+        fw->installBundle(symbolicName, bundleActivatorFactory, manifest);
     }
+    staticRegistry.bundles.emplace_back(StaticBundleEntry{.symbolicName = std::move(symbolicName), .manifest = std::move(manifest), .activatorFactory = std::move(bundleActivatorFactory)});
 }
 
 static void registerFramework(celix::Framework *fw) {
     std::lock_guard<std::mutex> lck{staticRegistry.mutex};
     staticRegistry.frameworks.insert(fw);
     for (auto &entry : staticRegistry.bundles) {
-        fw->installBundle(entry.symbolicName, std::shared_ptr<celix::IBundleActivator>{entry.activatorFactory()}, entry.manifest);
+        fw->installBundle(entry.symbolicName, entry.activatorFactory, entry.manifest);
     }
 }
 

@@ -29,8 +29,7 @@ public:
 
     celix::ServiceRegistry& registry() { return reg; }
 private:
-    celix::ServiceRegistry reg{"C/C++"};
-};
+    celix::ServiceRegistry reg{"C++"};
 
 class ICalc {
 public:

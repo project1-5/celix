@@ -30,7 +30,7 @@ public:
 
     celix::ServiceRegistry& registry() { return reg; }
 private:
-    celix::ServiceRegistry reg{"C/C++"};
+    celix::ServiceRegistry reg{"C++"};
 };
 
 class MarkerInterface1 {
@@ -262,6 +262,27 @@ TEST_F(RegistryTest, StdFunctionTest) {
     registry().useFunctionService<std::function<void()>>("count", [](std::function<void()> &count) {
         count();
     });
+}
+
+TEST_F(RegistryTest, ListServicesTest) {
+    std::vector<std::string> serviceNames = registry().listAllRegisteredServiceNames();
+    EXPECT_EQ(0, serviceNames.size());
+
+    std::function<void()> nop = []{/*nop*/};
+    class MarkerInterface1 {};
+    MarkerInterface1 intf1;
+
+    {
+        auto reg1 = registry().registerFunctionService("nop", nop);
+        serviceNames = registry().listAllRegisteredServiceNames();
+        EXPECT_EQ(1, serviceNames.size());
+
+        auto reg2 = registry().registerService(intf1);
+        serviceNames = registry().listAllRegisteredServiceNames();
+        EXPECT_EQ(2, serviceNames.size());
+    }
+    serviceNames = registry().listAllRegisteredServiceNames();
+    EXPECT_EQ(0, serviceNames.size());
 }
 
 //TODO function use with props and bnd

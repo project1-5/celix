@@ -21,3 +21,4 @@ add_subdirectory(shell_bonjour)
 add_subdirectory(shell_tui)
 
 add_subdirectory(cxx_shell)
+add_subdirectory(cxx_shell_tui)

@@ -44,80 +44,71 @@ TEST_F(FrameworkTest, CreateDestroy) {
     EXPECT_TRUE(isFramework);
 }
 
+class EmbeddedActivator : public celix::IBundleActivator {
+public:
+    EmbeddedActivator(std::shared_ptr<celix::IBundleContext>) {
+        startCount++;
+    }
+
+    virtual ~EmbeddedActivator() {
+        stopCount++;
+    }
+
+    static std::atomic<int> startCount;
+    static std::atomic<int> stopCount;
+};
+
+std::atomic<int> EmbeddedActivator::startCount{0};
+std::atomic<int> EmbeddedActivator::stopCount{0};
+
 TEST_F(FrameworkTest, InstallBundle) {
+    EmbeddedActivator::startCount = 0;
+    EmbeddedActivator::stopCount = 0;
 
-    class EmbeddedActivator : public celix::IBundleActivator {
-    public:
-        virtual ~EmbeddedActivator() = default;
-
-        bool resolve(std::shared_ptr<celix::IBundleContext> ctx) noexcept override {
-            EXPECT_GE(ctx->bundle()->id(), 1);
-            resolveCalled = true;
-            return true;
-        }
-
-        bool start(std::shared_ptr<celix::IBundleContext>) noexcept override {
-            startCalled = true;
-            return true;
-        }
-
-        bool stop(std::shared_ptr<celix::IBundleContext>) noexcept override {
-            stopCalled = true;
-            return true;
-        }
-
-        bool resolveCalled = false;
-        bool startCalled = false;
-        bool stopCalled = false;
+    auto actFactory = [](std::shared_ptr<celix::IBundleContext> ctx) -> celix::IBundleActivator* {
+        return new EmbeddedActivator{std::move(ctx)};
     };
-
-    long bndId1 = framework().installBundle<EmbeddedActivator>("embedded");
+    long bndId1 = framework().installBundle("embedded", actFactory);
     EXPECT_GE(bndId1, 0);
+    EXPECT_EQ(1, EmbeddedActivator::startCount);
+    EXPECT_EQ(0, EmbeddedActivator::stopCount);
 
-    std::shared_ptr<EmbeddedActivator> act{new EmbeddedActivator};
-    long bndId2 = framework().installBundle("embedded2", act);
+    long bndId2 = framework().installBundle<EmbeddedActivator>("embedded2");
     EXPECT_GE(bndId2, 0);
     EXPECT_NE(bndId1, bndId2);
-    EXPECT_TRUE(act->resolveCalled);
-    EXPECT_TRUE(act->startCalled);
-    EXPECT_FALSE(act->stopCalled);
+    EXPECT_EQ(2, EmbeddedActivator::startCount);
+    EXPECT_EQ(0, EmbeddedActivator::stopCount);
 
     framework().stopBundle(bndId2);
-    EXPECT_TRUE(act->stopCalled);
+    EXPECT_EQ(1, EmbeddedActivator::stopCount);
 
-    std::shared_ptr<EmbeddedActivator> act3{new EmbeddedActivator};
     {
         celix::Framework fw{};
-        fw.installBundle("embedded3", act3);
-        EXPECT_TRUE(act3->resolveCalled);
-        EXPECT_TRUE(act3->startCalled);
-        EXPECT_FALSE(act3->stopCalled);
+        fw.installBundle<EmbeddedActivator>("embedded3");
+        EXPECT_EQ(3, EmbeddedActivator::startCount);
+        EXPECT_EQ(1, EmbeddedActivator::stopCount);
 
         //NOTE fw out of scope -> bundle stopped
     }
-    EXPECT_TRUE(act3->stopCalled);
+    EXPECT_EQ(3, EmbeddedActivator::startCount);
+    EXPECT_EQ(2, EmbeddedActivator::stopCount);
 }
 
 TEST_F(FrameworkTest, StaticBundleTest) {
     class EmbeddedActivator : public celix::IBundleActivator {
     public:
+        EmbeddedActivator() {}
         virtual ~EmbeddedActivator() = default;
-
-        bool start(std::shared_ptr<celix::IBundleContext>) noexcept override {
-            return true;
-        }
     };
 
     int count = 0;
-    auto factory = [&]() -> celix::IBundleActivator * {
+    auto factory = [&](std::shared_ptr<celix::IBundleContext>) -> celix::IBundleActivator * {
         count++;
         return new EmbeddedActivator{};
     };
 
     EXPECT_EQ(0, framework().listBundles().size()); //no bundles installed;
-    celix::StaticBundleOptions opts;
-    opts.bundleActivatorFactory = std::move(factory);
-    celix::registerStaticBundle("static", opts);
+    celix::registerStaticBundle("static", factory);
     EXPECT_EQ(1, framework().listBundles().size()); //static bundle instance installed
     EXPECT_EQ(1, count);
 

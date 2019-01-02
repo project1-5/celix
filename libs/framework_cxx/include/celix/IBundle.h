@@ -27,7 +27,6 @@ namespace celix {
 
     enum class BundleState {
         INSTALLED,
-        RESOLVED,
         ACTIVE,
     };
 

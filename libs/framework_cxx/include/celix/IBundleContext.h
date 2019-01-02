@@ -51,6 +51,10 @@ namespace celix {
         virtual bool useBundle(long bndId, std::function<void(const celix::IBundle &bnd)> use) const noexcept = 0;
         virtual int useBundles(std::function<void(const celix::IBundle &bnd)> use, bool includeFrameworkBundle = true) const noexcept = 0;
 
+        virtual bool stopBundle(long bndId) noexcept = 0;
+        virtual bool startBundle(long bndId) noexcept = 0;
+        //TODO install / uninstall bundles
+
         template<typename I>
         bool useService(std::function<void(I &svc)> use, const std::string &filter = "") const noexcept {
             return registry().useService<I>(std::move(use), filter, bundle());
@@ -128,7 +132,8 @@ namespace celix {
         //TODO track trackers
 
         //TODO track c trackers
-    private:
+
+
         virtual celix::ServiceRegistry& registry() const noexcept = 0;
         virtual celix::ServiceRegistry& cRegistry() const noexcept = 0;
     };
