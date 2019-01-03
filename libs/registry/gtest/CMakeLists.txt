@@ -15,8 +15,6 @@
 # specific language governing permissions and limitations
 # under the License.
 
-find_package(glog REQUIRED)
-
 set(SOURCES
         src/main.cc
         src/Registry_tests.cc
