@@ -58,6 +58,7 @@ if (ENABLE_TESTING)
     include(cmake/celix_project/AddGTest.cmake)
 endif ()
 include(cmake/celix_project/AddGLog.cmake)
+include(cmake/celix_project/AddLibzip.cmake)
 
 # Default bundle version
 set(DEFAULT_VERSION 1.0.0)

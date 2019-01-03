@@ -30,7 +30,9 @@ namespace celix {
     class Bundle : public celix::IBundle {
     public:
         Bundle(long _bndId, celix::Framework *_fw, celix::Properties _manifest) :
-                bndId{_bndId}, fw{_fw}, bndManifest{std::move(_manifest)}, bndState{BundleState::INSTALLED} {
+                bndId{_bndId}, fw{_fw}, bndManifest{std::move(_manifest)},
+                bundleCache{framework().cacheDir() + "/bundle" + std::to_string(_bndId)},
+                bndState{BundleState::INSTALLED} {
             bndState.store(BundleState::INSTALLED, std::memory_order_release);
         }
 
@@ -38,11 +40,12 @@ namespace celix {
         Bundle& operator=(const Bundle&) = delete;
 
         //resource part
-        bool has(const std::string &) const noexcept override;
-        bool isDir(const std::string &) const noexcept override;
-        bool isFile(const std::string &) const noexcept override;
-        std::vector <std::string> readDir(const std::string &) const noexcept override;
-        const std::string &root() const noexcept override;
+        bool hasCacheEntry(const std::string &) const noexcept override;
+        bool isCacheEntryDir(const std::string &) const noexcept override;
+        bool isCacheEntryFile(const std::string &) const noexcept override;
+        std::string absPathForCacheEntry(const std::string &) const noexcept override;
+        std::vector <std::string> readCacheDir(const std::string &) const noexcept override;
+        const std::string &cacheRoot() const noexcept override;
 
         //bundle part
         bool isFrameworkBundle() const noexcept override { return false; }
@@ -58,7 +61,7 @@ namespace celix {
         }
 
         const std::string &group() const noexcept override {
-            return bndManifest.at(celix::MANIFEST_BUNDLE_SYMBOLIC_NAME);
+            return bndManifest.at(celix::MANIFEST_BUNDLE_GROUP);
         }
 
         const std::string &version() const noexcept override { return bndManifest.at(celix::MANIFEST_BUNDLE_VERSION); }
@@ -81,6 +84,7 @@ namespace celix {
         const long bndId;
         celix::Framework *const fw;
         const celix::Properties bndManifest;
+        const std::string bundleCache;
 
         std::atomic<BundleState> bndState;
     };

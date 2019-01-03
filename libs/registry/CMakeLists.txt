@@ -15,11 +15,10 @@
 # specific language governing permissions and limitations
 # under the License.
 
-find_package(glog REQUIRED)
-
 add_library(celix_registry STATIC
         src/ServiceRegistry.cc
         src/Filter.cc
+        src/Properties.cc
 )
 target_include_directories(celix_registry PRIVATE src)
 target_include_directories(celix_registry PUBLIC include)

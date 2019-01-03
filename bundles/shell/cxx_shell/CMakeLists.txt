@@ -15,14 +15,23 @@
 # specific language governing permissions and limitations
 # under the License.
 
-find_package(glog REQUIRED)
-
 #TODO rename to celix::shell && celix::shell_api
 
 add_library(celix_cxx_shell_api INTERFACE)
 target_include_directories(celix_cxx_shell_api INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
     $<INSTALL_INTERFACE:include/celix/shell>
+)
+
+#TODO should eventually be done by a CMake command (i.e. bundle_add_resources)
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/celix_cxx_shell_resources.zip
+        COMMAND zip -rq ${CMAKE_CURRENT_BINARY_DIR}/celix_cxx_shell_resources.zip *
+        COMMENT "Packaging Resources"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/resources
+)
+
+add_custom_target(create_resources ALL
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/celix_cxx_shell_resources.zip
 )
 
 add_library(celix_cxx_shell SHARED
@@ -32,10 +41,18 @@ add_library(celix_cxx_shell SHARED
         src/StopAndStartCommand.cc
         src/InspectCommand.cc
         src/QueryCommand.cc
+        src/VersionCommand.cc
 )
 target_include_directories(celix_cxx_shell PRIVATE src)
 target_link_libraries(celix_cxx_shell PRIVATE celix_cxx_shell_api glog::glog)
 target_link_libraries(celix_cxx_shell PUBLIC celix_framework_cxx)
+add_dependencies(celix_cxx_shell create_resources)
+if (UNIX AND NOT APPLE)
+    target_link_libraries(celix_cxx_shell PRIVATE -Wl,--format=binary -Wl,celix_cxx_shell_resources.zip -Wl,--format=default)
+else ()
+    #TODO apple
+endif ()
+
 
 #if (ENABLE_TESTING)
 #    add_subdirectory(gtest)

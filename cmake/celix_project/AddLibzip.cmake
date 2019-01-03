@@ -15,21 +15,19 @@
 # specific language governing permissions and limitations
 # under the License.
 
-
 include(ExternalProject)
 ExternalProject_Add(
-        googlelog_project
-        GIT_REPOSITORY https://github.com/google/glog.git
-        GIT_TAG v0.3.5
+        libzip_project
+        GIT_REPOSITORY https://github.com/nih-at/libzip.git
+        GIT_TAG rel-1-5-1
         UPDATE_DISCONNECTED TRUE
-        PREFIX ${CMAKE_CURRENT_BINARY_DIR}/glog
-        CMAKE_ARGS -DWITH_GFLAGS=OFF -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/glog -DCMAKE_CXX_FLAGS=-w
+        PREFIX ${CMAKE_CURRENT_BINARY_DIR}/libzip
+        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/libzip -DCMAKE_C_FLAGS=-fPIC -DBUILD_SHARED_LIBS=OFF -DENABLE_COMMONCRYPTO=OFF -DENABLE_GNUTLS=OFF -DENABLE_OPENSSL=OFF -Wno-dev
 )
 
-add_library(glog::glog IMPORTED STATIC GLOBAL)
-add_dependencies(glog::glog googlelog_project)
-set_target_properties(glog::glog PROPERTIES
-    IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/glog/lib/libglog.a"
-    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_BINARY_DIR}/glog/include"
+add_library(libzip::libzip IMPORTED STATIC GLOBAL)
+add_dependencies(libzip::libzip libzip_project)
+set_target_properties(libzip::libzip PROPERTIES
+        IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/libzip/lib64/libzip.a"
+        INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_BINARY_DIR}/libzip/include"
 )
-

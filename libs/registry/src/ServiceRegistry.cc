@@ -42,18 +42,19 @@ namespace {
 
         long id() const noexcept override { return 0; }
 
-        const std::string& root() const noexcept override {
+        const std::string& cacheRoot() const noexcept override {
             static std::string empty{};
             return empty;
         }
 
-        bool has(const std::string&) const noexcept override { return false; }
-        bool isDir(const std::string&) const noexcept override { return false; }
-        bool isFile(const std::string&) const noexcept override { return false; }
+        bool hasCacheEntry(const std::string&) const noexcept override { return false; }
+        bool isCacheEntryDir(const std::string&) const noexcept override { return false; }
+        bool isCacheEntryFile(const std::string&) const noexcept override { return false; }
 
         //std::istream& open(const std::string &path) override {}
         //std::fstream& open(const std::string &path) override {}
-        std::vector<std::string> readDir(const std::string&) const noexcept override { return std::vector<std::string>{};}
+        std::string absPathForCacheEntry(const std::string &) const noexcept override { return {}; }
+        std::vector<std::string> readCacheDir(const std::string&) const noexcept override { return std::vector<std::string>{};}
     };
 
     struct SvcEntry {

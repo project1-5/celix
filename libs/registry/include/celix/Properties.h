@@ -56,11 +56,11 @@ namespace celix {
         return std::stoul(val, nullptr, 10);
     }
 
-    /*TODO
+
     celix::Properties loadProperties(const std::string &path);
-    celix::Properties loadProperties(std::istream stream);
-    bool storeProperties(const celix::Properties &props, const std::string &path);
-     */
+    celix::Properties loadProperties(std::istream &stream);
+    //bool storeProperties(const celix::Properties &props, const std::string &path); TODO
+    //bool storeProperties(const celix::Properties &props, std::ofstream &stream); TODO
 }
 
 #endif //CXX_CELIX_PROPERTIES_H

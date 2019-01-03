@@ -31,16 +31,17 @@ namespace celix {
 
         virtual long id() const noexcept  = 0;
 
-        virtual const std::string& root() const noexcept = 0;
+        virtual const std::string& cacheRoot() const noexcept = 0;
 
-        virtual bool has(const std::string &path) const noexcept = 0;
-        virtual bool isDir(const std::string &path) const noexcept = 0;
-        virtual bool isFile(const std::string &path) const noexcept = 0;
+        virtual bool hasCacheEntry(const std::string &entryPath) const noexcept = 0;
+        virtual bool isCacheEntryDir(const std::string &path) const noexcept = 0;
+        virtual bool isCacheEntryFile(const std::string &path) const noexcept = 0;
 
         //virtual bool storeResource(const std::string &path, std::ostream content) noexcept = 0;
         //virtual std::istream open(const std::string &path) const noexcept = 0;
         //virtual std::fstream open(const std::string &path) noexcept = 0;
-        virtual std::vector<std::string> readDir(const std::string &path) const noexcept = 0;
+        virtual std::string absPathForCacheEntry(const std::string &entry) const noexcept = 0;
+        virtual std::vector<std::string> readCacheDir(const std::string &path) const noexcept = 0;
     };
 
 

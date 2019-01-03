@@ -20,6 +20,7 @@ ExternalProject_Add(
         googletest_project
         GIT_REPOSITORY https://github.com/google/googletest.git
         GIT_TAG release-1.8.1
+        UPDATE_DISCONNECTED TRUE
         PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gtest
         INSTALL_COMMAND ""
 )

@@ -15,8 +15,6 @@
 # specific language governing permissions and limitations
 # under the License.
 
-find_package(glog REQUIRED)
-
 #TODO rename to celix::shell_tui
 
 #OR static lib, but then with all symbols to force constructor attribute

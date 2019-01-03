@@ -18,20 +18,30 @@
  */
 
 #include <string>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "Bundle.h"
 
-bool celix::Bundle::has(const std::string &) const noexcept { return false; } //TODO
+bool celix::Bundle::hasCacheEntry(const std::string &path) const noexcept {
+    auto abs = absPathForCacheEntry(path);
+    struct stat st;
+    bool exists = stat(abs.c_str(), &st) == 0;
+    return exists;
+}
 
-bool celix::Bundle::isDir(const std::string &) const noexcept { return false; } //TODO
+bool celix::Bundle::isCacheEntryDir(const std::string &) const noexcept { return false; } //TODO
 
-bool celix::Bundle::isFile(const std::string &) const noexcept { return false; } //TODO
+bool celix::Bundle::isCacheEntryFile(const std::string &) const noexcept { return false; } //TODO
 
-std::vector <std::string> celix::Bundle::readDir(const std::string &) const noexcept { //TODO
+std::vector <std::string> celix::Bundle::readCacheDir(const std::string &) const noexcept { //TODO
     return std::vector < std::string > {};
 }
 
-const std::string& celix::Bundle::root() const noexcept { //TODO
-    static std::string empty{};
-    return empty;
+const std::string& celix::Bundle::cacheRoot() const noexcept {
+    return bundleCache;
+}
+
+std::string celix::Bundle::absPathForCacheEntry(const std::string &entryPath) const noexcept {
+    return bundleCache + "/" + entryPath;
 }

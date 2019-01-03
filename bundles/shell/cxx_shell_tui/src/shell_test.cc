@@ -29,7 +29,6 @@ int main(int /*argc*/, char **argv) {
     google::LogToStderr();
 
     auto fw = celix::Framework{};
-    std::cout << "Waiting for Framework shutdown\n";
     fw.waitForShutdown();
     return 0;
 }
