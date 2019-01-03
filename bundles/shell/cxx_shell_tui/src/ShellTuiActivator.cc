@@ -21,6 +21,7 @@
 #include <cstdio>
 #include <unistd.h>
 #include <fcntl.h>
+#include <mutex>
 
 #include <glog/logging.h>
 
@@ -115,10 +116,10 @@ namespace {
         std::mutex mutex{};
         std::shared_ptr<celix::IShell> shell{};
 
-        std::thread readThread;
+        std::thread readThread{};
 
-        int readPipeFd;
-        int writePipeFd;
+        int readPipeFd{};
+        int writePipeFd{};
 
 
         char in[LINE_SIZE+1]{};
@@ -136,7 +137,7 @@ namespace {
         }
     private:
         ShellTui tui{};
-        celix::ServiceTracker trk;
+        celix::ServiceTracker trk{};
     };
 
     __attribute__((constructor))

@@ -27,6 +27,9 @@
 #include <set>
 #include <vector>
 #include <future>
+#include <algorithm>
+
+#include <linux/limits.h>
 
 #include <glog/logging.h>
 
@@ -53,6 +56,9 @@ static void unregisterFramework(celix::Framework *fw);
 class celix::Framework::Impl : public IBundle {
 public:
     Impl(celix::Framework *_fw, celix::Properties _config) : fw{_fw}, config{std::move(_config)}, bndManifest{createManifest()}, cwd{createCwd()} {}
+
+    Impl(const Impl&) = delete;
+    Impl& operator=(const Impl&) = delete;
 
     ~Impl() {
         stopFramework();
@@ -237,10 +243,10 @@ public:
 
     //resource bundle part
     long id() const noexcept override { return 1L /*note registry empty bundle is id 0, framework is id 1*/; }
-    bool has(const std::string&) const override { return false; }
-    bool isDir(const std::string&) const override { return false; }
-    bool isFile(const std::string&) const override { return false; }
-    std::vector<std::string> readDir(const std::string&) const override { return std::vector<std::string>{};}
+    bool has(const std::string&) const noexcept override { return false; }
+    bool isDir(const std::string&) const noexcept override { return false; }
+    bool isFile(const std::string&) const noexcept override { return false; }
+    std::vector<std::string> readDir(const std::string&) const noexcept override { return std::vector<std::string>{};}
     const std::string& root() const noexcept override { //TODO
         return cwd;
     }
@@ -326,21 +332,22 @@ private:
 
     struct {
         mutable std::mutex mutex{};
-        std::unordered_map<std::string, celix::ServiceRegistry> entries;
-    } registries;
+        std::unordered_map<std::string, celix::ServiceRegistry> entries{};
+    } registries{};
 };
 
 /***********************************************************************************************************************
  * Framework
  **********************************************************************************************************************/
 
-celix::Framework::Framework(celix::Properties config) {
-    pimpl = std::unique_ptr<Impl>{new Impl{this, std::move(config)}};
+celix::Framework::Framework(celix::Properties config) : pimpl{std::unique_ptr<Impl>{new Impl{this, std::move(config)}}} {
     registerFramework(this);
 }
+
 celix::Framework::~Framework() {
     unregisterFramework(this);
 }
+
 celix::Framework::Framework(Framework &&rhs) = default;
 celix::Framework& celix::Framework::operator=(Framework&& rhs) = default;
 

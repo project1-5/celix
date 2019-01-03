@@ -20,6 +20,7 @@
 #ifndef CXX_CELIX_FILTER_H
 #define CXX_CELIX_FILTER_H
 
+#include <memory>
 #include <string>
 #include <vector>
 

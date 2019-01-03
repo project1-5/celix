@@ -29,6 +29,9 @@ namespace celix {
             reg{&bnd->framework().registry(celix::CXX_LANG)},
             cReg(&bnd->framework().registry(celix::C_LANG)){}
 
+        Impl(const Impl&) = delete;
+        Impl& operator=(const Impl&) = delete;
+
         const std::shared_ptr<celix::IBundle> bnd;
         celix::ServiceRegistry * const reg; //TODO make weak_ptr
         celix::ServiceRegistry * const cReg; //TODO make weak_ptr
@@ -36,9 +39,8 @@ namespace celix {
     };
 }
 
-celix::BundleContext::BundleContext(std::shared_ptr<celix::IBundle> bnd) {
-    pimpl = std::unique_ptr<celix::BundleContext::Impl>{new celix::BundleContext::Impl{std::move(bnd)}};
-}
+celix::BundleContext::BundleContext(std::shared_ptr<celix::IBundle> bnd) :
+    pimpl{std::unique_ptr<celix::BundleContext::Impl>{new celix::BundleContext::Impl{std::move(bnd)}}} {}
 
 celix::BundleContext::~BundleContext() = default;
 

@@ -44,6 +44,7 @@ namespace {
                 }
                 token = strtok_r(nullptr, " ", &savePtr);
             }
+            free(cl);
 
             bool commandCalled = false;
 

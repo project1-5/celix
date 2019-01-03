@@ -24,7 +24,8 @@ add_library(celix_framework_cxx SHARED
         src/Bundle.cc)
 target_include_directories(celix_framework_cxx PRIVATE src)
 target_include_directories(celix_framework_cxx PUBLIC include)
-target_link_libraries(celix_framework_cxx PUBLIC celix::registry glog::glog) #TODO glog private and static lib
+target_link_libraries(celix_framework_cxx PRIVATE glog::glog)
+target_link_libraries(celix_framework_cxx PUBLIC celix::registry)
 
 if (ENABLE_TESTING)
     add_subdirectory(gtest)

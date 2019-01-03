@@ -21,6 +21,7 @@
 #define CXX_CELIX_IRESOURCEBUNDLE_H
 
 #include <string>
+#include <vector>
 
 namespace celix {
 

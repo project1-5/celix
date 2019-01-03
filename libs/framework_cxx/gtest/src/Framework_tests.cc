@@ -17,6 +17,8 @@
  *under the License.
  */
 
+#include <atomic>
+
 #include "gtest/gtest.h"
 
 #include "celix/Framework.h"
@@ -46,12 +48,12 @@ TEST_F(FrameworkTest, CreateDestroy) {
 
 class EmbeddedActivator : public celix::IBundleActivator {
 public:
-    EmbeddedActivator(std::shared_ptr<celix::BundleContext>) {
-        startCount++;
+    explicit EmbeddedActivator(std::shared_ptr<celix::BundleContext>) {
+        startCount.fetch_add(1);
     }
 
     virtual ~EmbeddedActivator() {
-        stopCount++;
+        stopCount.fetch_add(1);
     }
 
     static std::atomic<int> startCount;

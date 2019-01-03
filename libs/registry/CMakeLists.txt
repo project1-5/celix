@@ -23,7 +23,8 @@ add_library(celix_registry STATIC
 )
 target_include_directories(celix_registry PRIVATE src)
 target_include_directories(celix_registry PUBLIC include)
-target_link_libraries(celix_registry PRIVATE glog::glog) #TODO make glog static and private
+target_link_libraries(celix_registry PRIVATE glog::glog)
+target_compile_options(celix_registry PRIVATE -fPIC)
 
 add_library(celix::registry ALIAS celix_registry)
 

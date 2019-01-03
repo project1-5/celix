@@ -24,8 +24,8 @@ add_library(celix_cxx_shell_tui SHARED
         src/ShellTuiActivator.cc
         src/shell_test.cc)
 target_include_directories(celix_cxx_shell_tui PRIVATE src)
-target_link_libraries(celix_cxx_shell_tui PRIVATE celix_cxx_shell_api)
-target_link_libraries(celix_cxx_shell_tui PUBLIC glog::glog celix_framework_cxx)
+target_link_libraries(celix_cxx_shell_tui PRIVATE celix_cxx_shell_api glog::glog)
+target_link_libraries(celix_cxx_shell_tui PUBLIC celix_framework_cxx)
 
 #if (ENABLE_TESTING)
 #    add_subdirectory(gtest)

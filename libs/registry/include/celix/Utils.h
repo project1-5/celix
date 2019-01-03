@@ -20,7 +20,7 @@
 #ifndef CXX_CELIX_UTILS_H
 #define CXX_CELIX_UTILS_H
 
-
+#include <cstring>
 #include <string>
 #include <iostream>
 

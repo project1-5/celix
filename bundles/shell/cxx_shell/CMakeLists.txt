@@ -34,8 +34,8 @@ add_library(celix_cxx_shell SHARED
         src/QueryCommand.cc
 )
 target_include_directories(celix_cxx_shell PRIVATE src)
-target_link_libraries(celix_cxx_shell PRIVATE celix_cxx_shell_api)
-target_link_libraries(celix_cxx_shell PUBLIC glog::glog celix_framework_cxx)
+target_link_libraries(celix_cxx_shell PRIVATE celix_cxx_shell_api glog::glog)
+target_link_libraries(celix_cxx_shell PUBLIC celix_framework_cxx)
 
 #if (ENABLE_TESTING)
 #    add_subdirectory(gtest)

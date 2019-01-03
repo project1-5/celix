@@ -26,6 +26,7 @@
 #include <future>
 
 #include <glog/logging.h>
+#include <assert.h>
 
 #include "celix/Constants.h"
 #include "celix/ServiceRegistry.h"
@@ -306,7 +307,7 @@ namespace {
         }
     private:
         struct {
-            mutable std::mutex mutex; //protects matchedEntries & highestRanking
+            mutable std::mutex mutex{}; //protects matchedEntries & highestRanking
             std::map<std::shared_ptr<const SvcEntry>, std::shared_ptr<void>, SvcEntryLess> entries{};
             std::shared_ptr<void> highest{};
         } tracked{};
@@ -338,8 +339,10 @@ public:
 
 class celix::ServiceRegistry::Impl {
 public:
+    Impl(std::string _regName) : regName{_regName} {}
+
     const std::shared_ptr<const celix::IResourceBundle> emptyBundle = std::shared_ptr<const celix::IResourceBundle>{new EmptyBundle{}};
-    std::string regName;
+    const std::string regName;
 
     struct {
         mutable std::mutex mutex{};
@@ -511,9 +514,7 @@ public:
  **********************************************************************************************************************/
 
 
-celix::ServiceRegistry::ServiceRegistry(std::string name) : pimpl{new ServiceRegistry::Impl{}} {
-    pimpl->regName = std::move(name);
-}
+celix::ServiceRegistry::ServiceRegistry(std::string name) : pimpl{new ServiceRegistry::Impl{std::move(name)}} {}
 celix::ServiceRegistry::ServiceRegistry(celix::ServiceRegistry &&rhs) = default;
 celix::ServiceRegistry& celix::ServiceRegistry::operator=(celix::ServiceRegistry &&rhs) = default;
 celix::ServiceRegistry::~ServiceRegistry() {

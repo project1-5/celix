@@ -47,17 +47,17 @@ ELSE ()
 ENDIF()
 
 # Set version for the framework package/release
-set(CELIX_MAJOR "2")
-set(CELIX_MINOR "2")
+set(CELIX_MAJOR "3")
+set(CELIX_MINOR "0")
 set(CELIX_MICRO "0")
 
-option(ENABLE_TESTING "Enables unit testing using CPPUTEST" OFF)
-option(ENABLE_GTESTING "Enables unit testing using GTest" ON)
+option(ENABLE_TESTING "Enables unit testing" OFF)
 
 if (ENABLE_TESTING)
 	enable_testing()
     include(cmake/celix_project/AddGTest.cmake)
 endif ()
+include(cmake/celix_project/AddGLog.cmake)
 
 # Default bundle version
 set(DEFAULT_VERSION 1.0.0)

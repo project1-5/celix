@@ -17,8 +17,11 @@
  *under the License.
  */
 
-#include "gtest/gtest.h"
 
+
+#include <memory>
+
+#include <gtest/gtest.h>
 #include <glog/logging.h>
 
 #include "celix/ServiceRegistry.h"

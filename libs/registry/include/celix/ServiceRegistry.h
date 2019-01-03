@@ -22,6 +22,8 @@
 
 #include <utility>
 #include <vector>
+#include <functional>
+#include <memory>
 
 #include "celix/Constants.h"
 #include "celix/Properties.h"

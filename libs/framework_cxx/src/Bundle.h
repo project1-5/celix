@@ -20,6 +20,8 @@
 #ifndef CXX_CELIX_BUNDLE_H
 #define CXX_CELIX_BUNDLE_H
 
+#include <atomic>
+
 #include "celix/Constants.h"
 #include "celix/IBundle.h"
 #include "celix/BundleContext.h"
@@ -28,9 +30,12 @@ namespace celix {
     class Bundle : public celix::IBundle {
     public:
         Bundle(long _bndId, celix::Framework *_fw, celix::Properties _manifest) :
-                bndId{_bndId}, fw{_fw}, bndManifest{std::move(_manifest)} {
+                bndId{_bndId}, fw{_fw}, bndManifest{std::move(_manifest)}, bndState{BundleState::INSTALLED} {
             bndState.store(BundleState::INSTALLED, std::memory_order_release);
         }
+
+        Bundle(const Bundle&) = delete;
+        Bundle& operator=(const Bundle&) = delete;
 
         //resource part
         bool has(const std::string &) const noexcept override;
@@ -76,9 +81,8 @@ namespace celix {
         const long bndId;
         celix::Framework *const fw;
         const celix::Properties bndManifest;
-        std::weak_ptr <celix::BundleContext> context;
 
-        std::atomic <BundleState> bndState;
+        std::atomic<BundleState> bndState;
     };
 }
 
