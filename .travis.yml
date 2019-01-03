@@ -35,8 +35,8 @@ matrix:
 #services: docker
 
 before_install:
-  - if [ "$TRAVIS_OS_NAME" = "linux" ] sudo apt-get update -qq
-  - if [ "$TRAVIS_OS_NAME" = "linux" ] sudo apt-get install -qq uuid-dev libxml2-dev lcov libffi-dev libczmq-dev libcpputest-dev libjansson-dev
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get update -qq; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get install -qq uuid-dev libxml2-dev lcov libffi-dev libczmq-dev libcpputest-dev libjansson-dev; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update && brew install lcov libffi zeromq czmq glog cpputest jansson && brew link --force libffi; fi
 
 before_script:
