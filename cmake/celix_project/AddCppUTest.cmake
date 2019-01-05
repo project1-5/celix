@@ -22,14 +22,14 @@ ExternalProject_Add(
         GIT_TAG v3.8
         UPDATE_DISCONNECTED TRUE
         PREFIX ${CMAKE_BINARY_DIR}/cpputest
-        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/cpputest
+        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/cpputest -DCMAKE_C_FLAGS=-w -DCMAKE_CXX_FLAGS=-w
 )
 
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/cpputest/include)
 
 set(CPPUTEST_LIBRARY cpputest::cpputest)
 set(CPPUTEST_EXT_LIBRARY cpputest::ext)
-set(CPPUTEST_INCLUDE_DIR ${binary_dir}/cpputest)
+set(CPPUTEST_INCLUDE_DIR ${CMAKE_BINARY_DIR}/cpputest/include)
 
 add_library(cpputest::cpputest IMPORTED STATIC GLOBAL)
 add_dependencies(cpputest::cpputest cpputest_project)

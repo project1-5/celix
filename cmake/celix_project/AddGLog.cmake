@@ -23,10 +23,10 @@ ExternalProject_Add(
         GIT_TAG v0.3.5
         UPDATE_DISCONNECTED TRUE
         PREFIX ${CMAKE_BINARY_DIR}/glog
-        CMAKE_ARGS -DWITH_GFLAGS=OFF -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/glog -DCMAKE_CXX_FLAGS=-w
+        CMAKE_ARGS -DWITH_GFLAGS=OFF -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/glog -DCMAKE_C_FLAGS=-w -DCMAKE_CXX_FLAGS=-w
 )
 
-file(MAKE_DIRECTORY ${source_dir}/glog/include)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/glog/include)
 
 add_library(glog::glog IMPORTED STATIC GLOBAL)
 add_dependencies(glog::glog googlelog_project)
