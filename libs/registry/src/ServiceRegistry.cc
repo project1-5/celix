@@ -263,8 +263,8 @@ namespace {
                 //fill vector
                 std::lock_guard<std::mutex> lck{tracked.mutex};
                 rankedServices.reserve(tracked.entries.size());
-                for (auto &tracked : tracked.entries) {
-                    rankedServices.push_back(std::make_tuple(tracked.second, &tracked.first->props, tracked.first->owner.get()));
+                for (auto &entry : tracked.entries) {
+                    rankedServices.push_back(std::make_tuple(entry.second, &entry.first->props, entry.first->owner.get()));
                 }
             }
             if (opts.update) {

@@ -147,6 +147,6 @@ namespace {
         manifest[celix::MANIFEST_BUNDLE_NAME] = "Shell Tui";
         manifest[celix::MANIFEST_BUNDLE_GROUP] = "Celix";
         manifest[celix::MANIFEST_BUNDLE_VERSION] = "1.0.0";
-        celix::registerStaticBundle<ShellTuiBundleActivator>("celix::ShellTui", manifest);
+        celix::registerStaticBundle<ShellTuiBundleActivator>("celix::ShellTui", std::move(manifest));
     }
 }
