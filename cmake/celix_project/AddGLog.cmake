@@ -26,7 +26,7 @@ ExternalProject_Add(
         CMAKE_ARGS -DWITH_GFLAGS=OFF -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/glog -DCMAKE_CXX_FLAGS=-w
 )
 
-file(GENERATE OUTPUT ${CMAKE_BINARY_DIR}/glog/include/dummy.txt CONTENT "//Dummy file to ensure the include dir exists")
+file(MAKE_DIRECTORY ${source_dir}/glog/include)
 
 add_library(glog::glog IMPORTED STATIC GLOBAL)
 add_dependencies(glog::glog googlelog_project)

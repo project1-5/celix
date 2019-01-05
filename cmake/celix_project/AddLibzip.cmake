@@ -25,7 +25,7 @@ ExternalProject_Add(
         CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/libzip -DCMAKE_C_FLAGS=-fPIC -DBUILD_SHARED_LIBS=OFF -DENABLE_COMMONCRYPTO=OFF -DENABLE_GNUTLS=OFF -DENABLE_OPENSSL=OFF -Wno-dev
 )
 
-file(GENERATE OUTPUT ${CMAKE_BINARY_DIR}/libzip/include/dummy.txt CONTENT "//Dummy file to ensure the include dir exists")
+file(MAKE_DIRECTORY ${source_dir}/libzip/include)
 
 add_library(libzip::libzip IMPORTED STATIC GLOBAL)
 add_dependencies(libzip::libzip libzip_project)

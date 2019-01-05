@@ -71,7 +71,7 @@ add_library(Celix::utils ALIAS utils)
 
 celix_subproject(UTILS-TESTS "Option to build the utilities library tests" "OFF")
 if (ENABLE_TESTING AND UTILS-TESTS)
-    find_package(CppUTest REQUIRED)
+    #find_package(CppUTest REQUIRED)
 
     include_directories(SYSTEM ${CPPUTEST_INCLUDE_DIR})
     include_directories(include)
