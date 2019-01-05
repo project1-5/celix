@@ -51,7 +51,7 @@ set(CELIX_MAJOR "3")
 set(CELIX_MINOR "0")
 set(CELIX_MICRO "0")
 
-option(ENABLE_TESTING "Enables unit testing" OFF)
+option(ENABLE_TESTING "Enables unit testing" ON)
 
 if (ENABLE_TESTING)
 	enable_testing()
@@ -70,15 +70,15 @@ add_subdirectory(libs)
 add_subdirectory(bundles)
 
 #Example as last, because some example will check if underlining options are enabled
-add_subdirectory(examples/celix-examples examples)
+#TODO add_subdirectory(examples/celix-examples examples)
 
 #export targets
-install(EXPORT celix NAMESPACE Celix:: DESTINATION share/celix/cmake FILE Targets.cmake COMPONENT cmake)
-install_celix_targets(celix NAMESPACE Celix:: DESTINATION share/celix/cmake FILE CelixTargets.cmake COMPONENT cmake)
+#install(EXPORT celix NAMESPACE Celix:: DESTINATION share/celix/cmake FILE Targets.cmake COMPONENT cmake)
+#install_celix_targets(celix NAMESPACE Celix:: DESTINATION share/celix/cmake FILE CelixTargets.cmake COMPONENT cmake)
 
 #install celix cmake modules
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/cmake/Modules/ DESTINATION share/celix/cmake/Modules)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/cmake/cmake_celix/ DESTINATION share/celix/cmake/cmake_celix)
+#install(DIRECTORY ${CMAKE_SOURCE_DIR}/cmake/Modules/ DESTINATION share/celix/cmake/Modules)
+#install(DIRECTORY ${CMAKE_SOURCE_DIR}/cmake/cmake_celix/ DESTINATION share/celix/cmake/cmake_celix)
 
 #configure and install CelixConfig and CelixConfigVersion files
 configure_file(cmake/CelixConfigVersion.cmake.in

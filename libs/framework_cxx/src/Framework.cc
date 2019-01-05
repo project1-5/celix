@@ -31,7 +31,9 @@
 #include <future>
 #include <algorithm>
 
+#ifndef __APPLE__
 #include <linux/limits.h>
+#endif
 
 #include <glog/logging.h>
 #include <uuid/uuid.h>
@@ -339,7 +341,7 @@ private:
     std::string uuidString() {
         char uuidStr[37];
         uuid_t uuid;
-        uuid_generate_time_safe(uuid);
+        uuid_generate(uuid);
         uuid_unparse(uuid, uuidStr);
         return std::string{uuidStr};
     }

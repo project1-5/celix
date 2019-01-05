@@ -17,14 +17,13 @@
  *under the License.
  */
 
-#include <iostream>
-
 #include <glog/logging.h>
 
 #include "celix/api.h"
 
 
 int main(int /*argc*/, char **argv) {
+    //TODO move glog init to framework (a pthread_once?)
     google::InitGoogleLogging(argv[0]);
     google::LogToStderr();
 

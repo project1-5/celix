@@ -22,14 +22,16 @@ ExternalProject_Add(
         GIT_REPOSITORY https://github.com/google/glog.git
         GIT_TAG v0.3.5
         UPDATE_DISCONNECTED TRUE
-        PREFIX ${CMAKE_CURRENT_BINARY_DIR}/glog
-        CMAKE_ARGS -DWITH_GFLAGS=OFF -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/glog -DCMAKE_CXX_FLAGS=-w
+        PREFIX ${CMAKE_BINARY_DIR}/glog
+        CMAKE_ARGS -DWITH_GFLAGS=OFF -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/glog -DCMAKE_CXX_FLAGS=-w
 )
+
+file(GENERATE OUTPUT ${CMAKE_BINARY_DIR}/glog/include/dummy.txt CONTENT "//Dummy file to ensure the include dir exists")
 
 add_library(glog::glog IMPORTED STATIC GLOBAL)
 add_dependencies(glog::glog googlelog_project)
 set_target_properties(glog::glog PROPERTIES
-    IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/glog/lib/libglog.a"
-    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_BINARY_DIR}/glog/include"
+    IMPORTED_LOCATION "${CMAKE_BINARY_DIR}/glog/lib/libglog.a"
+    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_BINARY_DIR}/glog/include"
 )
 

@@ -16,6 +16,9 @@
 # under the License.
 
 find_package(UUID REQUIRED)
+if(NOT APPLE)
+    set(UUID ${UUID_LIBRARY})
+endif()
 
 #TODO rename to celix::framework
 add_library(celix_framework_cxx SHARED
@@ -27,7 +30,7 @@ target_include_directories(celix_framework_cxx PRIVATE src)
 target_include_directories(celix_framework_cxx PUBLIC include)
 target_link_libraries(celix_framework_cxx PRIVATE glog::glog libzip::libzip)
 #NOTE because of libzil libbz2 and libz is also needed. maybe more to other form of resources (i.e. tar)
-target_link_libraries(celix_framework_cxx PUBLIC celix::registry bz2 z ${UUID_LIBRARY})
+target_link_libraries(celix_framework_cxx PUBLIC celix::registry bz2 z ${UUID})
 
 if (ENABLE_TESTING)
     add_subdirectory(gtest)

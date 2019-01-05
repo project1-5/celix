@@ -29,11 +29,14 @@
 #include <stdio.h>
 #include <time.h>
 #include <sys/stat.h>
+#include <sys/errno.h>
 #include <dirent.h>
 #include <unistd.h>
 
 #include "bundle_archive.h"
 #include "linked_list_iterator.h"
+
+#include <string.h>
 
 struct bundleArchive {
 	long id;
@@ -76,7 +79,7 @@ celix_status_t bundleArchive_createSystemBundleArchive(bundle_archive_pt *bundle
 			status = linkedList_create(&archive->revisions);
 			if (status == CELIX_SUCCESS) {
 				archive->id = 0L;
-				archive->location = strdup("System Bundle");
+				archive->location = strndup("System Bundle", 1024*1024);
 				archive->archiveRoot = NULL;
 				archive->archiveRootDir = NULL;
 				archive->refreshCount = -1;

@@ -33,4 +33,4 @@ target_link_libraries(celix_cxx_shell_tui PUBLIC celix_framework_cxx)
 add_executable(shell_test
         src/shell_test.cc
 )
-target_link_libraries(shell_test PRIVATE celix_cxx_shell celix_cxx_shell_tui)
+target_link_libraries(shell_test PRIVATE celix_cxx_shell celix_cxx_shell_tui glog::glog)

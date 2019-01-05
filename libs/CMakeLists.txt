@@ -21,14 +21,15 @@ add_subdirectory(utils)
 add_subdirectory(dfi)
 add_subdirectory(etcdlib)
 
-add_subdirectory(framework)
+#add_subdirectory(framework)
 
+#C++ stuff
 add_subdirectory(registry)
 add_subdirectory(framework_cxx)
 
 #launcher
-add_subdirectory(launcher)
+#add_subdirectory(launcher)
 
 #add_subdirectory(event_admin)# event_admin is unstable
-add_subdirectory(dependency_manager)
-add_subdirectory(dependency_manager_cxx)
+#add_subdirectory(dependency_manager)
+#add_subdirectory(dependency_manager_cxx)

@@ -23,7 +23,7 @@ target_include_directories(celix_cxx_shell_api INTERFACE
     $<INSTALL_INTERFACE:include/celix/shell>
 )
 
-#TODO should eventually be done by a CMake command (i.e. bundle_add_resources)
+#TODO should eventually be done by a CMake command (i.e. celix_bundle_add_resources)
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/celix_cxx_shell_resources.zip
         COMMAND zip -rq ${CMAKE_CURRENT_BINARY_DIR}/celix_cxx_shell_resources.zip *
         COMMENT "Packaging Resources"
@@ -47,10 +47,12 @@ target_include_directories(celix_cxx_shell PRIVATE src)
 target_link_libraries(celix_cxx_shell PRIVATE celix_cxx_shell_api glog::glog)
 target_link_libraries(celix_cxx_shell PUBLIC celix_framework_cxx)
 add_dependencies(celix_cxx_shell create_resources)
+
+#TODO should eventually be done by a CMake command (i.e. the add_celix_bundle)
 if (UNIX AND NOT APPLE)
     target_link_libraries(celix_cxx_shell PRIVATE -Wl,--format=binary -Wl,celix_cxx_shell_resources.zip -Wl,--format=default)
 else ()
-    #TODO apple
+    target_link_libraries(celix_cxx_shell PRIVATE -Wl,-sectcreate -Wl,resources -Wl,celix_cxx_shell -Wl,celix_cxx_shell_resources.zip)
 endif ()
 
 
