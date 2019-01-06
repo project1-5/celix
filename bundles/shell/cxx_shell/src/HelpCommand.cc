@@ -22,9 +22,10 @@
 #include "celix/api.h"
 #include "celix/IShellCommand.h"
 
-celix::ServiceRegistration impl::registerHelp(std::shared_ptr<celix::BundleContext> ctx) {
 
-    celix::ShellCommandFunction help = [ctx](const std::string &, const std::vector<std::string> &commandArguments, std::ostream &out, std::ostream &) {
+namespace {
+
+    void help(std::shared_ptr<celix::BundleContext> ctx, const std::string &, const std::vector<std::string> &commandArguments, std::ostream &out, std::ostream &) {
 
         if (commandArguments.empty()) { //only command -> overview
 
@@ -59,8 +60,7 @@ celix::ServiceRegistration impl::registerHelp(std::shared_ptr<celix::BundleConte
                 }, commandNameFilter);
                 if (!found) {
                     commandNameFilter = std::string{"("} + celix::SHELL_COMMAND_FUNCTION_COMMAND_NAME + "=" + cmd + ")";
-                    std::function<void(celix::ShellCommandFunction &, const celix::Properties &)> use = [&](
-                            celix::ShellCommandFunction &, const celix::Properties &props) {
+                    std::function<void(celix::ShellCommandFunction &, const celix::Properties &)> use = [&](celix::ShellCommandFunction &, const celix::Properties &props) {
                         out << "Command Name       : " << celix::getProperty(props, celix::SHELL_COMMAND_FUNCTION_COMMAND_NAME, "!Error!") << std::endl;
                         out << "Command Usage      : " << celix::getProperty(props, celix::SHELL_COMMAND_FUNCTION_COMMAND_USAGE, "!Error!") << std::endl;
                         out << "Command Description: " << celix::getProperty(props, celix::SHELL_COMMAND_FUNCTION_COMMAND_DESCRIPTION, "!Error!") << std::endl;
@@ -76,11 +76,16 @@ celix::ServiceRegistration impl::registerHelp(std::shared_ptr<celix::BundleConte
                 out << std::endl;
             }
         }
-    };
+    }
+}
+
+celix::ServiceRegistration impl::registerHelp(std::shared_ptr<celix::BundleContext> ctx) {
+    using namespace std::placeholders;
+    celix::ShellCommandFunction cmd = std::bind(&help, ctx, _1, _2, _3, _4);
 
     celix::Properties props{};
     props[celix::SHELL_COMMAND_FUNCTION_COMMAND_NAME] = "help";
     props[celix::SHELL_COMMAND_FUNCTION_COMMAND_USAGE] = "help [command name]";
     props[celix::SHELL_COMMAND_FUNCTION_COMMAND_DESCRIPTION] = "display available commands and description.";
-    return ctx->registerFunctionService(celix::SHELL_COMMAND_FUNCTION_SERVICE_FQN, std::move(help), std::move(props));
+    return ctx->registerFunctionService(celix::SHELL_COMMAND_FUNCTION_SERVICE_FQN, std::move(cmd), std::move(props));
 }

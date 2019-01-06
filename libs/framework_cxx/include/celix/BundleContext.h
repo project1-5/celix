@@ -53,7 +53,7 @@ namespace celix {
             return registry().registerFunctionService(std::move(functionName), std::forward<F>(function), std::move(props), bundle());
         }
 
-        //TODO reg svc fatories
+        //TODO reg svc factories
 
         bool useBundle(long bndId, std::function<void(const celix::IBundle &bnd)> use) const {
             return bundle()->framework().useBundle(bndId, std::move(use));
@@ -71,7 +71,7 @@ namespace celix {
             return bundle()->framework().startBundle(bndId);
         }
 
-        //TODO install / uninstall bundles, trackb undles
+        //TODO install / uninstall bundles, use & track bundles
 
         template<typename I>
         bool useServiceWithId(long svcId, std::function<void(I& svc)> use) const {

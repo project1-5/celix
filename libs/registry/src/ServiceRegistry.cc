@@ -25,6 +25,12 @@
 #include <utility>
 #include <future>
 
+#ifndef __APPLE__
+#include <linux/limits.h>
+#else
+#include <limits.h>
+#endif
+
 #include <glog/logging.h>
 #include <assert.h>
 

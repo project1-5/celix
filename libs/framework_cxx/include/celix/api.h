@@ -24,6 +24,7 @@
 #include "celix/Filter.h"
 #include "celix/ServiceRegistry.h"
 #include "celix/IBundleActivator.h"
+#include "celix/IBundle.h"
 #include "celix/Framework.h"
 #include "celix/BundleContext.h"
 

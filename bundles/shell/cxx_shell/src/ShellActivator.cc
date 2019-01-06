@@ -46,7 +46,7 @@ namespace {
             std::vector<std::string> cmdArgs{};
 
             char *savePtr = nullptr;
-            char *cl = strndup(commandLine.c_str(), 1024*1024);
+            char *cl = strndup(commandLine.c_str(), 1024 * 1024);
             char *token = strtok_r(cl, " ", &savePtr);
             while (token != nullptr) {
                 if (cmdName.empty()) {
@@ -58,16 +58,24 @@ namespace {
             }
             free(cl);
 
+            if (cmdName.empty()) {
+                return true; /*nop, just enter and maybe some white spaces*/
+            } else {
+                return callShellCommands(cmdName, cmdArgs, out, err);
+            }
+        }
+
+    private:
+        bool callShellCommands(const std::string &cmdName, const std::vector<std::string> cmdArgs, std::ostream &out, std::ostream &err) {
             bool commandCalled = false;
 
-            if (!cmdName.empty()) {
-                //first try to call IShellCommand services.
-                std::string filter = std::string{"("} + celix::IShellCommand::COMMAND_NAME + "=" + cmdName + ")";
-                commandCalled = ctx->useService<celix::IShellCommand>([&](celix::IShellCommand &cmd) {
-                    cmd.executeCommand(cmdName, cmdArgs, out, err);
-                }, filter);
-            }
-            if (!cmdName.empty() && !commandCalled) {
+            //first try to call IShellCommand services.
+            std::string filter = std::string{"("} + celix::IShellCommand::COMMAND_NAME + "=" + cmdName + ")";
+            commandCalled = ctx->useService<celix::IShellCommand>([&](celix::IShellCommand &cmd) {
+                cmd.executeCommand(cmdName, cmdArgs, out, err);
+            }, filter);
+
+            if (!commandCalled) {
                 //if no IShellCommand service is found for the command name, try calling a ShellCommandFunction service.
                 std::string filter = std::string{"("} + celix::SHELL_COMMAND_FUNCTION_COMMAND_NAME + "=" + cmdName + ")";
                 std::function<void(celix::ShellCommandFunction&)> use = [&](celix::ShellCommandFunction &cmd) -> void {
@@ -76,11 +84,11 @@ namespace {
                 commandCalled = ctx->useFunctionService(celix::SHELL_COMMAND_FUNCTION_SERVICE_FQN, use, filter);
             }
 
-            //TODO C command service struct
-            if (!cmdName.empty() && !commandCalled) {
+            // TODO use C command service struct
+
+            if (!commandCalled) {
                 out << "Command '" << cmdName << "' not available. Type 'help' to see a list of available commands." << std::endl;
             }
-
 
             return commandCalled;
         }

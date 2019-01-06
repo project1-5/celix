@@ -22,12 +22,10 @@
 
 namespace celix {
     /**
-     * The BundleActivator.
+     * The BundleActivator is a marker interface and contains no virtual methods.
      *
-     * This is a marker interface and contains no virtual methods.
-     *
-     * The Celix Framework will expect a constructor with a std::shared_ptr<celix::IBundleContext> argument on the
-     * contrete bundle activator. RAII will be used to start (on ctor) and stop (on dtor) a bundle.
+     * The Celix Framework will expect a constructor with a std::shared_ptr<celix:IBundleContext> argument for the
+     * concrete bundle activator. RAII will be used to start (on ctor) and stop (on dtor) a bundle.
      */
     class IBundleActivator {
     public:

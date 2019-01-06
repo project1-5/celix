@@ -31,7 +31,6 @@ namespace celix {
 
     class BundleContext; //forward declaration
 
-    //TODO resources. resolved from bundle specific symbols which is linked zip file to the library
     void registerStaticBundle(
             std::string symbolicName,
             std::function<celix::IBundleActivator*(std::shared_ptr<celix::BundleContext>)> bundleActivatorFactory = {},

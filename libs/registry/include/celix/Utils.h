@@ -91,7 +91,7 @@ namespace celix {
     //NOTE C++17 typename std::enable_if<std::is_callable<I>::value, std::string>::type
     std::string functionServiceName(const std::string &fName) {
         std::string func = functionName<decltype(&F::operator())>();
-        return fName + "[" + func + "]";
+        return fName + " [" + func + "]";
     }
 }
 
