@@ -31,14 +31,14 @@ namespace celix {
 
     static constexpr const char *const FRAMEWORK_UUID = "framework.uuid";
 
-    static constexpr const char *const CXX_LANG = "C++";
-    static constexpr const char *const C_LANG = "C";
-
+    static constexpr const char *const C_AND_CXX_LANG_REG = "C/C++";
 
     static constexpr const char *const MANIFEST_BUNDLE_SYMBOLIC_NAME = "Bundle-SymbolicName";
     static constexpr const char *const MANIFEST_BUNDLE_NAME = "Bundle-Name";
     static constexpr const char *const MANIFEST_BUNDLE_VERSION = "Bundle-Version";
     static constexpr const char *const MANIFEST_BUNDLE_GROUP = "Bundle-Group";
+
+    static constexpr long FRAMEWORK_BUNDLE_ID = 1L;
 }
 
 #endif //CXX_CELIX_CONSTANTS_H

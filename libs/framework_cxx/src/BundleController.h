@@ -247,7 +247,7 @@ namespace celix {
         const uint8_t *resourcesZip;
         const size_t resourcesZipLen;
 
-        mutable std::mutex mutex{};
+        mutable std::mutex mutex{}; //protects act and lock access to the bundle for state transitions
         std::unique_ptr<celix::IBundleActivator> act{nullptr};
     };
 }

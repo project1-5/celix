@@ -16,10 +16,11 @@
 # under the License.
 
 add_library(celix_registry STATIC
-        src/ServiceRegistry.cc
+        src/Utils.cc
         src/Filter.cc
         src/Properties.cc
-)
+        src/ServiceRegistry.cc)
+
 target_include_directories(celix_registry PRIVATE src)
 target_include_directories(celix_registry PUBLIC include)
 target_link_libraries(celix_registry PRIVATE glog::glog)

@@ -45,7 +45,7 @@ namespace {
                 svcName = cmdArgs[1];
                 filter = cmdArgs[2];
             } else {
-                lang = celix::CXX_LANG;
+                lang = celix::C_AND_CXX_LANG_REG;
                 svcName = cmdArgs[0];
                 filter = cmdArgs[1];
             }

@@ -62,28 +62,67 @@ static struct {
 static void registerFramework(celix::Framework *fw);
 static void unregisterFramework(celix::Framework *fw);
 
-class celix::Framework::Impl : public IBundle {
-public:
-    Impl(celix::Framework *_fw, celix::Properties _config) : fw{_fw}, config{std::move(_config)}, bndManifest{createManifest()}, cwd{cwdString()}, fwUUID{uuidString()}{
-        startFramework();
+namespace {
+    //some utils function
+
+    celix::Properties createFwManifest() {
+        celix::Properties m{};
+        m[celix::MANIFEST_BUNDLE_SYMBOLIC_NAME] = "framework";
+        m[celix::MANIFEST_BUNDLE_NAME] = "Framework";
+        m[celix::MANIFEST_BUNDLE_GROUP] = "Celix";
+        m[celix::MANIFEST_BUNDLE_VERSION] = "3.0.0";
+        return m;
     }
+
+    std::string genUUIDString() {
+        char uuidStr[37];
+        uuid_t uuid;
+        uuid_generate(uuid);
+        uuid_unparse(uuid, uuidStr);
+        return std::string{uuidStr};
+    }
+
+    std::string createCwdString() {
+        char workdir[PATH_MAX];
+        if (getcwd(workdir, sizeof(workdir)) != NULL) {
+            return std::string{workdir};
+        } else {
+            return std::string{};
+        }
+    }
+
+    std::string genFwCacheDir(const celix::Properties &/*fwConfig*/) {
+        //TODO make configeruable
+        return createCwdString() + "/.cache";
+    }
+}
+
+class celix::Framework::Impl {
+public:
+    Impl(celix::Framework *_fw, celix::Properties _config) :
+            fw{_fw},
+            config{std::move(_config)},
+            bndManifest{createFwManifest()},
+            cwd{createCwdString()},
+            fwUUID{genUUIDString()},
+            fwCacheDir{genFwCacheDir(config)} {}
 
     Impl(const Impl&) = delete;
     Impl& operator=(const Impl&) = delete;
 
-    ~Impl() {
-        stopFramework();
-        waitForShutdown();
-    }
+    ~Impl() {}
 
     std::vector<long> listBundles(bool includeFrameworkBundle) const {
         std::vector<long> result{};
-        if (includeFrameworkBundle) {
-            result.push_back(0L); //framework bundle id
-        }
         std::lock_guard<std::mutex> lock{bundles.mutex};
         for (auto &entry : bundles.entries) {
-            result.push_back(entry.first);
+            if (entry.second->bundle()->id() == FRAMEWORK_BUNDLE_ID) {
+                if (includeFrameworkBundle) {
+                    result.push_back(entry.first);
+                }
+            } else {
+                result.push_back(entry.first);
+            }
         }
         std::sort(result.begin(), result.end());//ensure that the bundles are order by bndId -> i.e. time of install
         return result;
@@ -118,7 +157,7 @@ public:
 
             std::lock_guard<std::mutex> lck{bundles.mutex};
             bndId = bundles.nextBundleId++;
-            auto bnd = std::shared_ptr<celix::Bundle>{new celix::Bundle{bndId, this->fw, std::move(manifest)}};
+            auto bnd = std::shared_ptr<celix::Bundle>{new celix::Bundle{bndId, this->cacheDir(), this->fw, std::move(manifest)}};
             auto ctx = std::shared_ptr<celix::BundleContext>{new celix::BundleContext{bnd}};
             bndController = std::shared_ptr<celix::BundleController>{new celix::BundleController{std::move(actFactory), bnd, ctx, resourcesZip, resourcesZipLen}};
             bundles.entries.emplace(std::piecewise_construct,
@@ -141,16 +180,15 @@ public:
     }
 
     bool startBundle(long bndId) {
-        if (bndId == this->fwBndId) {
-            //TODO
-            return false;
+        if (bndId == FRAMEWORK_BUNDLE_ID) {
+            return startFramework();
         } else {
             return transitionBundleTo(bndId, BundleState::ACTIVE);
         }
     }
 
     bool stopBundle(long bndId) {
-        if (bndId == this->fwBndId) {
+        if (bndId == FRAMEWORK_BUNDLE_ID) {
             return stopFramework();
         } else {
             return transitionBundleTo(bndId, BundleState::INSTALLED);
@@ -201,25 +239,19 @@ public:
 
     bool useBundle(long bndId, std::function<void(const celix::IBundle &bnd)> use) const {
         bool called = false;
-        if (bndId == 0) {
-            //framework bundle
-            use(*this);
+        std::shared_ptr<celix::BundleController> match = nullptr;
+        {
+            std::lock_guard<std::mutex> lck{bundles.mutex};
+            auto it = bundles.entries.find(bndId);
+            if (it != bundles.entries.end()) {
+                match = it->second;
+                //TODO increase usage
+            }
+        }
+        if (match) {
+            use(*match->bundle());
             called = true;
-        } else {
-            std::shared_ptr<celix::BundleController> match = nullptr;
-            {
-                std::lock_guard<std::mutex> lck{bundles.mutex};
-                auto it = bundles.entries.find(bndId);
-                if (it != bundles.entries.end()) {
-                    match = it->second;
-                    //TODO increase usage
-                }
-            }
-            if (match) {
-                use(*match->bundle());
-                called = true;
-                //TODO decrease usage -> use shared ptr instead
-            }
+            //TODO decrease usage -> use shared ptr instead
         }
         return called;
     }
@@ -229,13 +261,16 @@ public:
         {
             std::lock_guard<std::mutex> lck{bundles.mutex};
             for (const auto &it : bundles.entries) {
-                useBundles[it.first] = it.second;
+                if (it.second->bundle()->id() == FRAMEWORK_BUNDLE_ID) {
+                    if (includeFramework) {
+                        useBundles[it.first] = it.second;
+                    }
+                } else {
+                    useBundles[it.first] = it.second;
+                }
             }
         }
 
-        if (includeFramework) {
-            use(*this);
-        }
         for (const auto &cntr : useBundles) {
             use(*cntr.second->bundle());
         }
@@ -257,51 +292,45 @@ public:
         }
     }
 
-    //resource bundle part
-    long id() const noexcept override { return 1L /*note registry empty bundle is id 0, framework is id 1*/; }
-    bool hasCacheEntry(const std::string &) const noexcept override { return false; }
-    bool isCacheEntryDir(const std::string &) const noexcept override { return false; }
-    bool isCacheEntryFile(const std::string &) const noexcept override { return false; }
-
-    //virtual bool storeResource(const std::string &path, std::ostream content) noexcept = 0;
-    //virtual std::istream open(const std::string &path) const noexcept = 0;
-    //virtual std::fstream open(const std::string &path) noexcept = 0;
-    std::string absPathForCacheEntry(const std::string &) const noexcept override { return {}; }
-    const std::string& cacheRoot() const noexcept override { //TODO
-        return cwd;
-    }
-
-    //bundle stuff
-    bool isFrameworkBundle() const noexcept override { return true; }
-    void* handle() const noexcept override { return nullptr; }
-    celix::BundleState state() const noexcept override { return BundleState::ACTIVE ; }
-    const std::string& name() const noexcept override { return bndManifest.at(celix::MANIFEST_BUNDLE_NAME); }
-    const std::string& symbolicName() const noexcept override { return bndManifest.at(celix::MANIFEST_BUNDLE_SYMBOLIC_NAME); }
-    const std::string& group() const noexcept override { return bndManifest.at(celix::MANIFEST_BUNDLE_GROUP); }
-    const std::string& version() const noexcept override { return bndManifest.at(celix::MANIFEST_BUNDLE_VERSION); }
-    const celix::Properties& manifest() const noexcept  override { return bndManifest;}
-    bool isValid() const noexcept override { return true; }
-    celix::Framework& framework() const noexcept override { return *fw; }
 
     std::string cacheDir() const {
-        return cwd + "/.cache"; //TODO make configurable
+        return fwCacheDir;
     }
-
-    std::vector<std::string> readCacheDir(const std::string &) const noexcept override { return {}; } //TODO
 
     std::string uuid() const {
         return fwUUID;
     }
 
+    celix::BundleContext& frameworkContext() const {
+        std::lock_guard<std::mutex> lck(bundles.mutex);
+        return *bundles.entries.at(celix::FRAMEWORK_BUNDLE_ID)->context();
+    }
+
     bool startFramework() {
         //TODO create cache dir using a process id (and  lock file?).
         //Maybe also move to /var/cache or /tmp and when framework stop delete all framework caches of not running processes
-        std::cout << "Celix Framework Started";
+
+        {
+            //Adding framework bundle to the bundles.
+            auto bnd = std::shared_ptr<celix::Bundle>{new celix::Bundle{FRAMEWORK_BUNDLE_ID, this->fwCacheDir, this->fw, bndManifest}};
+            bnd->setState(BundleState::ACTIVE);
+            auto ctx = std::shared_ptr<celix::BundleContext>{new celix::BundleContext{bnd}};
+            class EmptyActivator : public IBundleActivator {};
+            std::function<celix::IBundleActivator*(std::shared_ptr<celix::BundleContext>)> fac = [](std::shared_ptr<celix::BundleContext>) {
+                return new EmptyActivator{};
+            };
+            auto ctr = std::shared_ptr<celix::BundleController>{new celix::BundleController{std::move(fac), std::move(bnd), std::move(ctx), nullptr, 0}};
+            std::lock_guard<std::mutex> lck{bundles.mutex};
+            bundles.entries[FRAMEWORK_BUNDLE_ID] = std::move(ctr);
+        }
+
+        //TODO update state
+
+        std::cout << "Celix Framework Started\n";
         return true;
     }
 
     bool stopFramework() {
-        //TODO create cache dir
         std::lock_guard<std::mutex> lck{shutdown.mutex};
         if (!shutdown.shutdownStarted) {
             shutdown.future = std::async(std::launch::async, [this]{
@@ -317,7 +346,12 @@ public:
             shutdown.shutdownStarted = true;
             shutdown.cv.notify_all();
         }
-        std::cout << "Celix Framework Stopped";
+
+        //TODO update bundle state
+
+        //TODO clean cache dir
+
+        std::cout << "Celix Framework Stopped\n";
         return true;
     }
 
@@ -329,38 +363,13 @@ public:
         return true;
     }
 private:
-    celix::Properties createManifest() {
-        celix::Properties m{};
-        m[celix::MANIFEST_BUNDLE_SYMBOLIC_NAME] = "framework";
-        m[celix::MANIFEST_BUNDLE_NAME] = "Framework";
-        m[MANIFEST_BUNDLE_GROUP] = "Celix";
-        m[celix::MANIFEST_BUNDLE_VERSION] = "3.0.0";
-        return m;
-    }
 
-    std::string uuidString() {
-        char uuidStr[37];
-        uuid_t uuid;
-        uuid_generate(uuid);
-        uuid_unparse(uuid, uuidStr);
-        return std::string{uuidStr};
-    }
-
-    std::string cwdString() {
-        char workdir[PATH_MAX];
-        if (getcwd(workdir, sizeof(workdir)) != NULL) {
-            return std::string{workdir};
-        } else {
-            return std::string{};
-        }
-    }
-
-    const long fwBndId = 1L;
     celix::Framework * const fw;
     const celix::Properties config;
     const celix::Properties bndManifest;
     const std::string cwd;
     const std::string fwUUID;
+    const std::string fwCacheDir;
 
 
     struct {
@@ -374,7 +383,7 @@ private:
 
     struct {
         std::unordered_map<long, std::shared_ptr<celix::BundleController>> entries{};
-        long nextBundleId = 2;
+        long nextBundleId = FRAMEWORK_BUNDLE_ID + 1;
         mutable std::mutex mutex{};
     } bundles{};
 
@@ -389,11 +398,14 @@ private:
  **********************************************************************************************************************/
 
 celix::Framework::Framework(celix::Properties config) : pimpl{std::unique_ptr<Impl>{new Impl{this, std::move(config)}}} {
+    pimpl->startFramework();
     registerFramework(this);
 }
 
 celix::Framework::~Framework() {
     unregisterFramework(this);
+    pimpl->stopFramework();
+    pimpl->waitForShutdown();
 }
 
 celix::Framework::Framework(Framework &&rhs) = default;
@@ -435,6 +447,9 @@ std::string celix::Framework::uuid() const {
     return pimpl->uuid();
 }
 
+celix::BundleContext& celix::Framework::context() const {
+    return pimpl->frameworkContext();
+}
 
 /***********************************************************************************************************************
  * Celix 'global' functions

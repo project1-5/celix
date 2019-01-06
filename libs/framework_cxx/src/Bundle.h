@@ -29,9 +29,9 @@
 namespace celix {
     class Bundle : public celix::IBundle {
     public:
-        Bundle(long _bndId, celix::Framework *_fw, celix::Properties _manifest) :
+        Bundle(long _bndId, const std::string &cacheDir, celix::Framework *_fw, celix::Properties _manifest) :
                 bndId{_bndId}, fw{_fw}, bndManifest{std::move(_manifest)},
-                bundleCache{framework().cacheDir() + "/bundle" + std::to_string(_bndId)},
+                bundleCache{cacheDir + "/bundle" + std::to_string(_bndId)},
                 bndState{BundleState::INSTALLED} {
             bndState.store(BundleState::INSTALLED, std::memory_order_release);
         }
@@ -48,7 +48,7 @@ namespace celix {
         const std::string &cacheRoot() const noexcept override;
 
         //bundle part
-        bool isFrameworkBundle() const noexcept override { return false; }
+        bool isFrameworkBundle() const noexcept override { return bndId == 1 /*note 1 is the framework bundle id*/; }
 
         void *handle() const noexcept override { return nullptr; } //TODO
 

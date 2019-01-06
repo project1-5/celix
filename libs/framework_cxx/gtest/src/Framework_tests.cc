@@ -40,7 +40,7 @@ TEST_F(FrameworkTest, CreateDestroy) {
     EXPECT_EQ(0, framework().listBundles(false).size());
 
     bool isFramework = false;
-    framework().useBundle(0L, [&](const celix::IBundle &bnd) {
+    framework().useBundle(celix::FRAMEWORK_BUNDLE_ID, [&](const celix::IBundle &bnd) {
        isFramework = bnd.isFrameworkBundle();
     });
     EXPECT_TRUE(isFramework);

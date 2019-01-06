@@ -24,29 +24,20 @@
 #include <string>
 #include <iostream>
 
+namespace celix {
+namespace impl {
+    void assertIsNotFunctionService(const std::string &svcName);
+    std::string typeNameFromPrettyFunction(const std::string &templateName, const std::string &pretty);
+}
+}
+
 namespace {
 
     template<typename INTERFACE_TYPENAME>
     std::string typeName() {
-        std::string result;
-
-        const char *templateStr = "INTERFACE_TYPENAME = ";
-        const size_t templateStrLen = strlen(templateStr);
-
-        result = __PRETTY_FUNCTION__; //USING pretty function to retrieve the filled in template argument without using typeid()
-        size_t bpos = result.find(templateStr) + templateStrLen; //find begin pos after INTERFACE_TYPENAME = entry
-        size_t epos = bpos;
-        while (isalnum(result[epos]) || result[epos] == '_' || result[epos] == ':' || result[epos] == ' ' || result[epos] == '*' || result[epos] == '&' || result[epos] == '<' || result[epos] == '>') {
-            epos += 1;
-        }
-        size_t len = epos - bpos;
-        result = result.substr(bpos, len);
-
-        if (result.empty()) {
-            std::cerr << "Cannot infer type name in function call '" << __PRETTY_FUNCTION__ << "'\n'";
-        }
-
-        return result;
+        static const std::string templateStr = "INTERFACE_TYPENAME = ";
+        std::string pretty = __PRETTY_FUNCTION__;
+        return celix::impl::typeNameFromPrettyFunction(templateStr, __PRETTY_FUNCTION__);
     }
 
     template<typename Arg>
@@ -60,13 +51,13 @@ namespace {
     }
 
     template<typename R>
-    std::string functionName(const std::string &funcName) {
-        return funcName + " [std::function<" + typeName<R>() + "()>]";
+    std::string functionName() {
+        return "std::function<" + typeName<R>() + "()>";
     }
 
     template<typename R, typename Arg1, typename... Args>
-    std::string functionName(const std::string &funcName) {
-        return funcName + " [std::function<" + typeName<R>() + "("  + argName<Arg1, Args...>() + ")>]";
+    std::string functionName() {
+        return "std::function<" + typeName<R>() + "("  + argName<Arg1, Args...>() + ")>";
     }
 };
 
@@ -85,8 +76,12 @@ namespace celix {
     template<typename I>
     //NOTE C++17 typename std::enable_if<!std::is_callable<I>::value, std::string>::type
     std::string serviceName() {
-        return typeName<I>();
+        std::string svcName = typeName<I>();
+        celix::impl::assertIsNotFunctionService(svcName);
+        return svcName;
     }
+
+    //TODO resolve FQN for Function Service.
 
     /**
     * Returns the service name for a std::function I.
@@ -95,7 +90,8 @@ namespace celix {
     template<typename F>
     //NOTE C++17 typename std::enable_if<std::is_callable<I>::value, std::string>::type
     std::string functionServiceName(const std::string &fName) {
-        return functionName<decltype(&F::operator())>(fName);
+        std::string func = functionName<decltype(&F::operator())>();
+        return fName + "[" + func + "]";
     }
 }
 

@@ -53,7 +53,7 @@ namespace celix {
             return registry().registerFunctionService(std::move(functionName), std::forward<F>(function), std::move(props), bundle());
         }
 
-        //TODO register C services
+        //TODO reg svc fatories
 
         bool useBundle(long bndId, std::function<void(const celix::IBundle &bnd)> use) const {
             return bundle()->framework().useBundle(bndId, std::move(use));
@@ -163,7 +163,25 @@ namespace celix {
             return registry().useFunctionServices<F>(functionName, std::move(use), filter, bundle());
         }
 
-        //TODO use C services
+        template<typename I>
+        long findService(const std::string &filter = "") {
+            return registry().findService<I>(filter);
+        }
+
+        template<typename F>
+        long findFunctionService(const std::string &functionName, const std::string &filter = "") {
+            return registry().findFunctionService<F>(functionName, filter);
+        }
+
+        template<typename I>
+        std::vector<long> findServices(const std::string &filter = "") {
+            return registry().findServices<I>(filter);
+        }
+
+        template<typename F>
+        std::vector<long> findFunctionServices(const std::string &functionName, const std::string &filter = "") {
+            return registry().findFunctionServices<F>(functionName, filter);
+        }
 
         template<typename I>
         celix::ServiceTracker trackServices(celix::ServiceTrackerOptions<I> options = {}) {
@@ -175,15 +193,8 @@ namespace celix {
             return registry().trackFunctionServices<F>(functionName, std::move(options), bundle());
         }
 
-        //TODO track C Services
-
-        //TODO track trackers
-
-        //TODO track c trackers
-
 
         celix::ServiceRegistry& registry() const;
-        celix::ServiceRegistry& cRegistry() const;
     private:
 
         class Impl;

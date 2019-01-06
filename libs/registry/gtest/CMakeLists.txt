@@ -17,8 +17,9 @@
 
 set(SOURCES
         src/main.cc
-        src/Registry_tests.cc
+        src/Utils_tests.cc
         src/Filter_tests.cc
+        src/Registry_tests.cc
         src/ServiceTracking_tests.cc
         src/RegistryConcurrency_tests.cc
 )

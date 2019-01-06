@@ -26,15 +26,13 @@ namespace celix {
     public:
         Impl(std::shared_ptr<celix::IBundle> _bnd) :
             bnd{std::move(_bnd)},
-            reg{&bnd->framework().registry(celix::CXX_LANG)},
-            cReg(&bnd->framework().registry(celix::C_LANG)){}
+            reg{&bnd->framework().registry(celix::C_AND_CXX_LANG_REG)} {}
 
         Impl(const Impl&) = delete;
         Impl& operator=(const Impl&) = delete;
 
         const std::shared_ptr<celix::IBundle> bnd;
         celix::ServiceRegistry * const reg; //TODO make weak_ptr
-        celix::ServiceRegistry * const cReg; //TODO make weak_ptr
 
     };
 }
@@ -52,7 +50,4 @@ celix::ServiceRegistry& celix::BundleContext::registry() const {
     return *pimpl->reg;
 }
 
-celix::ServiceRegistry& celix::BundleContext::cRegistry() const {
-    return *pimpl->cReg;
-}
 

@@ -40,7 +40,11 @@ namespace {
     public:
         ~EmptyBundle() override = default;
 
-        long id() const noexcept override { return 0; }
+        long id() const noexcept override {
+            //TODO not sure what todo. 1 is reserved for the framework and I would like to keep <= 0 as invalid, so
+            //that default initialized long are not a valid bundle / svc id.
+            return LONG_MAX;
+        }
 
         const std::string& cacheRoot() const noexcept override {
             static std::string empty{};
@@ -94,7 +98,11 @@ namespace {
 
         void decrUsage() const {
             std::lock_guard<std::mutex> lck{mutex};
-            usage -= 1;
+            if (usage == 0) {
+                LOG(ERROR) << "Usage count decrease below 0!" << std::endl;
+            } else {
+                usage -= 1;
+            }
             cond.notify_all();
         }
 
@@ -298,7 +306,11 @@ namespace {
 
         void decrUsage() const {
             std::lock_guard<std::mutex> lck{mutex};
-            usage -= 1;
+            if (usage == 0) {
+                LOG(ERROR) << "Usage count decrease below 0!" << std::endl;
+            } else {
+                usage -= 1;
+            }
             cond.notify_all();
         }
 
@@ -516,8 +528,8 @@ public:
 
 
 celix::ServiceRegistry::ServiceRegistry(std::string name) : pimpl{new ServiceRegistry::Impl{std::move(name)}} {}
-celix::ServiceRegistry::ServiceRegistry(celix::ServiceRegistry &&rhs) = default;
-celix::ServiceRegistry& celix::ServiceRegistry::operator=(celix::ServiceRegistry &&rhs) = default;
+celix::ServiceRegistry::ServiceRegistry(celix::ServiceRegistry &&) = default;
+celix::ServiceRegistry& celix::ServiceRegistry::operator=(celix::ServiceRegistry &&) = default;
 celix::ServiceRegistry::~ServiceRegistry() {
     if (pimpl) {
         //TODO
@@ -637,6 +649,7 @@ int celix::ServiceRegistry::useAnyServices(const std::string &svcName,
                                                               const celix::IResourceBundle &bnd)> use,
                                            const std::string &f,
                                            std::shared_ptr<const celix::IResourceBundle> requester) const {
+
     celix::Filter filter = f;
     if (!filter.valid()) {
         LOG(WARNING) << "Invalid filter (" << f << ") provided. Cannot find services" << std::endl;
@@ -664,18 +677,19 @@ int celix::ServiceRegistry::useAnyServices(const std::string &svcName,
             entry->decrUsage();
         }};
         use(svc, entry->props, *entry->owner);
-        entry->decrUsage();
     }
 
     return (int)matches.size();
 }
 
 //TODO move to Impl
-bool celix::ServiceRegistry::useAnyService(const std::string &svcName,
-                                           std::function<void(std::shared_ptr<void> svc, const celix::Properties &props,
-                                                              const celix::IResourceBundle &bnd)> use,
-                                           const std::string &f,
-                                           std::shared_ptr<const celix::IResourceBundle> requester) const {
+bool celix::ServiceRegistry::useAnyService(
+        const std::string &svcName,
+        std::function<void(std::shared_ptr<void> svc, const celix::Properties &props,
+                const celix::IResourceBundle &bnd)> use,
+                const std::string &f,
+                std::shared_ptr<const celix::IResourceBundle> requester) const {
+
     celix::Filter filter = f;
     if (!filter.valid()) {
         LOG(WARNING) << "Invalid filter (" << f << ") provided. Cannot find services" << std::endl;
@@ -720,8 +734,8 @@ std::vector<std::string> celix::ServiceRegistry::listAllRegisteredServiceNames()
 celix::ServiceRegistration::ServiceRegistration() : pimpl{nullptr} {}
 
 celix::ServiceRegistration::ServiceRegistration(celix::ServiceRegistration::Impl *impl) : pimpl{impl} {}
-celix::ServiceRegistration::ServiceRegistration(celix::ServiceRegistration &&rhs) noexcept = default;
-celix::ServiceRegistration& celix::ServiceRegistration::operator=(celix::ServiceRegistration &&rhs) noexcept = default;
+celix::ServiceRegistration::ServiceRegistration(celix::ServiceRegistration &&) noexcept = default;
+celix::ServiceRegistration& celix::ServiceRegistration::operator=(celix::ServiceRegistration &&) noexcept = default;
 celix::ServiceRegistration::~ServiceRegistration() { unregister(); }
 
 long celix::ServiceRegistration::serviceId() const { return pimpl ? pimpl->entry->svcId : -1L; }
@@ -774,8 +788,8 @@ void celix::ServiceTracker::stop() {
     }
 }
 
-celix::ServiceTracker::ServiceTracker(celix::ServiceTracker &&rhs) noexcept = default;
-celix::ServiceTracker& celix::ServiceTracker::operator=(celix::ServiceTracker &&rhs) noexcept = default;
+celix::ServiceTracker::ServiceTracker(celix::ServiceTracker &&) noexcept = default;
+celix::ServiceTracker& celix::ServiceTracker::operator=(celix::ServiceTracker &&) noexcept = default;
 
 int celix::ServiceTracker::trackCount() const { return pimpl ? pimpl->entry->count() : 0; }
 const std::string& celix::ServiceTracker::serviceName() const { return pimpl? pimpl->entry->svcName : emptyString; }

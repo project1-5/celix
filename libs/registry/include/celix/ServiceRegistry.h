@@ -145,10 +145,29 @@ namespace celix {
         }
 
         template<typename F>
-        celix::ServiceRegistration registerFunctionService(const std::string &functionName, F&& func, celix::Properties props = {}, std::shared_ptr<const celix::IResourceBundle> owner = {});
+        celix::ServiceRegistration registerFunctionService(
+                const std::string &functionName,
+                F&& func, celix::Properties props = {},
+                std::shared_ptr<const celix::IResourceBundle> owner = {});
 
         template<typename I>
-        celix::ServiceRegistration registerServiceFactory(std::shared_ptr<celix::IServiceFactory<I>> factory, celix::Properties props = {}, std::shared_ptr<const celix::IResourceBundle> owner = {});
+        celix::ServiceRegistration registerServiceFactory(
+                std::shared_ptr<celix::IServiceFactory<I>> factory,
+                celix::Properties props = {},
+                std::shared_ptr<const celix::IResourceBundle> owner = {}) {
+            auto svcName = celix::serviceName<I>();
+            return registerServiceFactory(svcName, std::move(factory), std::move(props), std::move(owner));
+        }
+
+        template<typename F>
+        celix::ServiceRegistration registerFunctionServiceFactory(
+                const std::string &functionName,
+                std::shared_ptr<celix::IServiceFactory<F>> factory,
+                celix::Properties props = {},
+                std::shared_ptr<const celix::IResourceBundle> owner = {}) {
+            auto svcName = celix::functionServiceName<F>(functionName);
+            return registerServiceFactory(svcName, std::move(factory), std::move(props), std::move(owner));
+        }
 
         template<typename I>
         //NOTE C++17 typename std::enable_if<!std::is_callable<I>::value, long>::type
@@ -160,7 +179,7 @@ namespace celix {
         template<typename I>
         //NOTE C++17 typename std::enable_if<std::is_callable<I>::value, long>::type
         long findFunctionService(const std::string &functionName, const std::string &filter = "") const {
-            auto services = findFunctionService<I>(functionName, filter);
+            auto services = findFunctionServices<I>(functionName, filter);
             return services.size() > 0 ? services[0] : -1L;
         }
 
@@ -189,8 +208,6 @@ namespace celix {
             auto svcName = celix::functionServiceName<F>(functionName);
             return trackServices<F>(svcName, std::move(options), std::move(requester));
         }
-
-        //TODO trackTrackers
 
         template<typename I>
         int useServices(std::function<void(I& svc)> use, const std::string &filter = "", std::shared_ptr<const celix::IResourceBundle> requester = {}) const {
@@ -338,8 +355,18 @@ namespace celix {
         std::unique_ptr<celix::ServiceRegistry::Impl> pimpl;
 
         //register services
-        celix::ServiceRegistration registerService(std::string svcName, std::shared_ptr<void> svc, celix::Properties props, std::shared_ptr<const celix::IResourceBundle> owner);
-        celix::ServiceRegistration registerServiceFactory(std::string svcName, std::shared_ptr<celix::IServiceFactory<void>> factory, celix::Properties props, std::shared_ptr<const celix::IResourceBundle> owner);
+        celix::ServiceRegistration registerService(
+                std::string svcName,
+                std::shared_ptr<void> svc,
+                celix::Properties props,
+                std::shared_ptr<const celix::IResourceBundle> owner);
+
+        template<typename I>
+        celix::ServiceRegistration registerServiceFactory(
+                std::string svcName,
+                std::shared_ptr<celix::IServiceFactory<I>> factory,
+                celix::Properties props,
+                std::shared_ptr<const celix::IResourceBundle> owner);
 
         //use Services
         template<typename I>
@@ -350,6 +377,8 @@ namespace celix {
                 std::function<void(I &svc, const celix::Properties &props, const celix::IResourceBundle &bnd)> useWithOwner,
                 const std::string &filter,
                 std::shared_ptr<const celix::IResourceBundle> requester) const;
+
+        celix::ServiceRegistration registerServiceFactory(std::string svcName, std::shared_ptr<celix::IServiceFactory<void>> factory, celix::Properties props, std::shared_ptr<const celix::IResourceBundle> owner);
 
         template<typename I>
         bool useService(
@@ -394,9 +423,7 @@ inline celix::ServiceRegistration celix::ServiceRegistry::registerFunctionServic
 }
 
 template<typename I>
-inline celix::ServiceRegistration celix::ServiceRegistry::registerServiceFactory(std::shared_ptr<celix::IServiceFactory<I>> factory, celix::Properties props, std::shared_ptr<const celix::IResourceBundle> owner) {
-    std::string svcName = celix::serviceName<I>();
-
+inline celix::ServiceRegistration celix::ServiceRegistry::registerServiceFactory(std::string svcName, std::shared_ptr<celix::IServiceFactory<I>> factory, celix::Properties props, std::shared_ptr<const celix::IResourceBundle> owner) {
     class VoidServiceFactory : public celix::IServiceFactory<void> {
     public:
         VoidServiceFactory(std::shared_ptr<celix::IServiceFactory<I>> _factory) : factory{std::move(_factory)} {}

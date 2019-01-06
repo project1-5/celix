@@ -56,6 +56,6 @@ else ()
 endif ()
 
 
-#if (ENABLE_TESTING)
-#    add_subdirectory(gtest)
-#endif ()
+if (ENABLE_TESTING)
+    add_subdirectory(gtest)
+endif ()

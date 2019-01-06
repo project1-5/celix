@@ -180,7 +180,7 @@ TEST_F(RegistryTest, UseServices) {
         EXPECT_EQ(&svc, &intf1);
         long id = celix::getProperty(props, celix::SERVICE_ID, 0);
         EXPECT_EQ(svcId1, id);
-        EXPECT_EQ(0, bnd.id()); //not nullptr -> use empty bundle (bndId 0)
+        EXPECT_EQ(LONG_MAX, bnd.id()); //not nullptr -> use empty bundle (bndId 0)
     });
     EXPECT_TRUE(called);
 }
