@@ -15,17 +15,21 @@ matrix:
        - os: linux
          dist: xenial
          compiler: gcc
+         language: cpp
        - os: linux
          dist: xenial
          compiler: clang
+         language: cpp
        - os: osx
          osx_image: xcode7.3
          compiler: clang
          env: MACOSX_DEPLOYMENT_TARGET=10.11
+         language: cpp
        - os: linux
          dist: xenial
          compiler: gcc
          env: SANITIZE=1
+         language: cpp
 
 #DISABLED ANDROID BUILD
 #       - os: linux

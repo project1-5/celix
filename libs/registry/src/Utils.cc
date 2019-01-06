@@ -20,6 +20,7 @@
 #include "celix/Utils.h"
 
 #include <string>
+#include <cassert>
 
 #include <glog/logging.h>
 
