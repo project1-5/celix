@@ -44,10 +44,6 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update && brew install lcov libffi zeromq czmq glog cpputest jansson && brew link --force libffi; fi
 
 before_script:
-    - wget https://github.com/cpputest/cpputest/releases/download/v3.8/cpputest-3.8.tar.gz -O /tmp/cpputest.tar.gz
-    - tar -xzvf /tmp/cpputest.tar.gz -C /tmp
-    - if [ "$CC" = "clang" ]; then export CXX="clang++"; fi && cd /tmp/cpputest-* && ./configure --prefix=/usr/local && make && sudo make install && cd -
-    - cd /tmp/cpputest-* && ./configure --prefix=/usr/local && make && sudo make install && cd -
     - mkdir build install
     - export BUILD_OPTIONS=" \
         -DBUILD_RSA_REMOTE_SERVICE_ADMIN_DFI=ON \

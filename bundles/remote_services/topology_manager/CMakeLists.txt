@@ -32,7 +32,8 @@ if (RSA_TOPOLOGY_MANAGER)
     target_link_libraries(rsa_topology_manager PRIVATE Celix::log_helper Celix::rsa_spi)
 
 
-    if (ENABLE_TESTING)
+    set(RSA_TESTS OFF) #disabling all cpputest based tests
+    if (ENABLE_TESTING AND RSA_TESTS)
         find_package(CppUTest REQUIRED)
 	    find_package(Jansson REQUIRED)
  

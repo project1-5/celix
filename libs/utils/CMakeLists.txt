@@ -69,7 +69,8 @@ install(DIRECTORY include/ DESTINATION include/celix COMPONENT framework
 add_library(Celix::utils ALIAS utils)
 
 
-celix_subproject(UTILS-TESTS "Option to build the utilities library tests" "OFF")
+#celix_subproject(UTILS-TESTS "Option to build the utilities library tests" "OFF")
+set(UTILS-TEST OFF) #disabling all cpputest based test
 if (ENABLE_TESTING AND UTILS-TESTS)
     #find_package(CppUTest REQUIRED)
 

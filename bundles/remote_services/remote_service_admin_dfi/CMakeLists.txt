@@ -46,7 +46,7 @@ if (RSA_REMOTE_SERVICE_ADMIN_DFI)
             ${CURL_LIBRARIES} ${JANSSON_LIBRARIES})
 
     if (ENABLE_TESTING)
-        add_subdirectory(test)
+        #add_subdirectory(test) disabling all cpputest based tests
     endif()
 
 

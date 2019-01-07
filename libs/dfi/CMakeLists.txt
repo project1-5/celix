@@ -50,7 +50,8 @@ install(DIRECTORY include/ DESTINATION include/celix/dfi COMPONENT dfi)
 #Alias setup to match external usage
 add_library(Celix::dfi ALIAS dfi)
 
-if (ENABLE_TESTING)
+set(DFI_TESTS OFF) #disabling all cpputest based test
+if (ENABLE_TESTING AND DFI_TESTS)
     find_package(CppUTest REQUIRED)
         
     include_directories(${CPPUTEST_INCLUDE_DIR})

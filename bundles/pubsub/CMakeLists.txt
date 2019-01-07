@@ -36,9 +36,10 @@ if (PUBSUB)
 
 	add_subdirectory(examples)
 
-	if (ENABLE_TESTING)
-		option(BUILD_PUBSUB_TESTS "Enable Tests for PUBSUB" OFF)
-	endif()
+	#if (ENABLE_TESTING)
+	#	option(BUILD_PUBSUB_TESTS "Enable Tests for PUBSUB" OFF)
+	#endif()
+	set(BUILD_PUBSUB_TESTS OFF) #disabling all cpputest based tests
 	if (ENABLE_TESTING AND BUILD_PUBSUB_TESTS AND BUILD_PUBSUB_PSA_ZMQ)
 		add_subdirectory(test)
 	endif()

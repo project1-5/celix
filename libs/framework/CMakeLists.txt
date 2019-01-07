@@ -66,13 +66,13 @@ install(DIRECTORY include/ DESTINATION include/celix COMPONENT framework)
 add_library(Celix::framework ALIAS framework)
 
 
-if (ENABLE_TESTING)
+#celix_subproject(FRAMEWORK_TESTS "Option to build the framework tests" "OFF" DEPS)
+set(FRAMEWORK_TESTS OFF) #disabling all cpputest based test
+if (ENABLE_TESTING AND FRAMEWORK_TESTS)
     find_package(CppUTest REQUIRED)
     include_directories(${CPPUTEST_INCLUDE_DIR})
     add_subdirectory(tst)
 endif()
-
-celix_subproject(FRAMEWORK_TESTS "Option to build the framework tests" "OFF" DEPS)
 if (ENABLE_TESTING AND FRAMEWORK_TESTS)
     find_package(CppUTest REQUIRED)
 
