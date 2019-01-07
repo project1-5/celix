@@ -15,10 +15,10 @@
 # specific language governing permissions and limitations
 # under the License.
 
-#add_subdirectory(shell)
-#add_subdirectory(remote_shell)
-#add_subdirectory(shell_bonjour)
-#add_subdirectory(shell_tui)
+add_subdirectory(shell)
+add_subdirectory(remote_shell)
+add_subdirectory(shell_bonjour)
+add_subdirectory(shell_tui)
 
 add_subdirectory(cxx_shell)
 add_subdirectory(cxx_shell_tui)
