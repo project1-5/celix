@@ -71,6 +71,6 @@ celix::ServiceRegistration impl::registerQuery(std::shared_ptr<celix::BundleCont
     celix::Properties props{};
     props[celix::SHELL_COMMAND_FUNCTION_COMMAND_NAME] = "query";
     props[celix::SHELL_COMMAND_FUNCTION_COMMAND_USAGE] = "query [lang] [serviceName serviceFilter]";
-    props[celix::SHELL_COMMAND_FUNCTION_COMMAND_DESCRIPTION] = "Query the service registry. If no argumenst are provided list the available services names.";
+    props[celix::SHELL_COMMAND_FUNCTION_COMMAND_DESCRIPTION] = "Query the service registry. If no arguments are provided list the available services names.";
     return ctx->registerFunctionService(celix::SHELL_COMMAND_FUNCTION_SERVICE_FQN, std::move(cmd), std::move(props));
 }

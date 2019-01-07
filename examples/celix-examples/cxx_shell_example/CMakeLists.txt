@@ -15,25 +15,8 @@
 # specific language governing permissions and limitations
 # under the License.
 
-find_package(UUID REQUIRED)
-find_package(LIBZIP REQUIRED)
 
-if(NOT APPLE)
-    set(UUID ${UUID_LIBRARY})
-endif()
-
-#TODO rename to celix::framework
-add_library(celix_framework_cxx SHARED
-        src/Framework.cc
-        src/BundleContext.cc
-        src/Bundle.cc
+add_executable(cxx_shell_example
+        src/main.cc
 )
-target_include_directories(celix_framework_cxx PRIVATE src)
-target_include_directories(celix_framework_cxx PUBLIC include)
-target_link_libraries(celix_framework_cxx PRIVATE glog::glog libzip::libzip)
-#NOTE because of libzil libbz2 and libz is also needed. maybe more to other form of resources (i.e. tar)
-target_link_libraries(celix_framework_cxx PUBLIC celix::registry bz2 z ${UUID})
-
-if (ENABLE_TESTING)
-    add_subdirectory(gtest)
-endif ()
+target_link_libraries(cxx_shell_example PRIVATE celix_cxx_shell celix_cxx_shell_tui glog::glog)

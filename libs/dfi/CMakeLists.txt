@@ -74,5 +74,5 @@ if (ENABLE_TESTING AND DFI_TESTS)
 
 	add_test(NAME run_test_dfi COMMAND test_dfi)
 	SETUP_TARGET_FOR_COVERAGE(test_dfi_cov test_dfi ${CMAKE_BINARY_DIR}/coverage/test_dfi/test_dfi)
-endif(ENABLE_TESTING)
+endif ()
 
