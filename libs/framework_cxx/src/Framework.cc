@@ -408,8 +408,8 @@ celix::Framework::~Framework() {
     pimpl->waitForShutdown();
 }
 
-celix::Framework::Framework(Framework &&rhs) = default;
-celix::Framework& celix::Framework::operator=(Framework&& rhs) = default;
+celix::Framework::Framework(Framework &&) = default;
+celix::Framework& celix::Framework::operator=(Framework&&) = default;
 
 
 long celix::Framework::installBundle(
