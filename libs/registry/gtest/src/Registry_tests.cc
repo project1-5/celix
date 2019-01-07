@@ -20,6 +20,7 @@
 
 
 #include <memory>
+#include <climits>
 
 #include <gtest/gtest.h>
 #include <glog/logging.h>

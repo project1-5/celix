@@ -17,6 +17,8 @@
  *under the License.
  */
 
+#include <functional>
+
 #include "gtest/gtest.h"
 
 #include "celix/Utils.h"
@@ -48,7 +50,7 @@ TEST_F(UtilsTest, svcName) {
     //TODO EXPECT_EQ("SvcWithFqn[Version 1]", name);
 
     name = celix::functionServiceName<std::function<void()>>("do");
-    EXPECT_EQ("do[std::function<void()>]", name);
+    EXPECT_EQ("do [std::function<void()>]", name);
 
 
     name = celix::functionServiceName<std::function<std::vector<std::vector<long>>(long, int, std::vector<double>)>>("collect");

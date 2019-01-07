@@ -24,12 +24,7 @@
 #include <set>
 #include <utility>
 #include <future>
-
-#ifndef __APPLE__
-#include <linux/limits.h>
-#else
-#include <limits.h>
-#endif
+#include <climits>
 
 #include <glog/logging.h>
 #include <assert.h>

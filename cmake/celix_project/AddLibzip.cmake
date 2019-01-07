@@ -30,6 +30,6 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/libzip/include)
 add_library(libzip::libzip IMPORTED STATIC GLOBAL)
 add_dependencies(libzip::libzip libzip_project)
 set_target_properties(libzip::libzip PROPERTIES
-        IMPORTED_LOCATION "${CMAKE_BINARY_DIR}/libzip/lib/libzip.a"
+        IMPORTED_LOCATION "${CMAKE_BINARY_DIR}/libzip/${CMAKE_INSTALL_LIBDIR}/libzip.a"
         INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_BINARY_DIR}/libzip/include"
 )
