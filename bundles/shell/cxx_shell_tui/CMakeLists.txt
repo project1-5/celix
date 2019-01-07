@@ -15,19 +15,25 @@
 # specific language governing permissions and limitations
 # under the License.
 
-#TODO rename to celix::shell_tui
+add_library(shell_tui_static STATIC
+        src/ShellTui.cc
+)
+target_include_directories(shell_tui_static PUBLIC include)
+target_link_libraries(shell_tui_static PRIVATE celix_framework_cxx glog::glog celix_cxx_shell_api)
+target_compile_options(shell_tui_static PRIVATE -fPIC)
+
 
 #OR static lib, but then with all symbols to force constructor attribute
 add_library(celix_cxx_shell_tui SHARED
         src/ShellTuiActivator.cc
-        src/shell_test.cc)
+)
 target_include_directories(celix_cxx_shell_tui PRIVATE src)
-target_link_libraries(celix_cxx_shell_tui PRIVATE celix_cxx_shell_api glog::glog)
+target_link_libraries(celix_cxx_shell_tui PRIVATE shell_tui_static celix_cxx_shell_api glog::glog)
 target_link_libraries(celix_cxx_shell_tui PUBLIC celix_framework_cxx)
 
-#if (ENABLE_TESTING)
-#    add_subdirectory(gtest)
-#endif ()
+if (ENABLE_TESTING)
+    add_subdirectory(gtest)
+endif ()
 
 
 add_executable(shell_test

@@ -86,6 +86,7 @@ add_celix_container(pubsub_udpmc_tst
     DIR ${PROJECT_BINARY_DIR}/runtimes/test/pubsub/udpmc
     LAUNCHER celix_test_runner
 )
+
 add_celix_container(pubsub_zmq_tst
     NAME deploy_tst
     BUNDLES

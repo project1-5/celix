@@ -17,9 +17,10 @@
 
 set(SOURCES
         src/main.cc
+        src/ShellTui_tests.cc
 )
-add_executable(celix_shell_cxx_tests ${SOURCES})
-target_link_libraries(celix_shell_cxx_tests PRIVATE gtest celix_framework_cxx celix_shell_cxx)
+add_executable(celix_cxx_shell_tui_tests ${SOURCES})
+target_link_libraries(celix_cxx_shell_tui_tests PRIVATE gtest celix_framework_cxx shell_tui_static celix_cxx_shell_api)
 
-add_test(NAME celix_shell_cxx_tests COMMAND celix_shell_cxx_tests)
-SETUP_TARGET_FOR_COVERAGE(celix_shell_cxx_tests_cov celix_shell_cxx_tests ${CMAKE_BINARY_DIR}/coverage/celix_shell_cxx_tests/celix_shell_cxx_tests)
+add_test(NAME celix_cxx_shell_tui_tests COMMAND celix_cxx_shell_tui_tests)
+SETUP_TARGET_FOR_COVERAGE(celix_cxx_shell_tui_tests_cov celix_cxx_shell_tui_tests ${CMAKE_BINARY_DIR}/coverage/celix_cxx_shell_tui_tests/celix_cxx_shell_tui_tests ..)
