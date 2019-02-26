@@ -149,7 +149,7 @@ Johan 2h
 6.  writing documentation;
 Johan 4h
 7.  writing code;
-Johan 2h
+Johan 3h
 8.  running code?
 Johan 1h
 
