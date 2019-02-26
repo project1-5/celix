@@ -88,6 +88,9 @@ if (FRAMEWORK)
 
         find_package(Gtest REQUIRED)
         include_directories(${GTEST_INCLUDE_DIR})
+        
+        find_package(Gmock REQUIRED)
+        include_directories(${GMOCK_INCLUDE_DIR})
 
         add_subdirectory(tst)
     endif()
@@ -167,7 +170,7 @@ set(FRAMEWORK_TESTS ON)
 
 	    add_executable(thing_test
           private/test/thing_test.cpp)
-        target_link_libraries(thing_test ${GTEST_LIBRARY} celix_utils pthread)
+        target_link_libraries(thing_test ${GTEST_LIBRARY} ${GMOCK_LIBRARY} celix_utils pthread)
 
 	    add_executable(filter_gtest
           private/test/filter_gtest.cpp
@@ -175,7 +178,7 @@ set(FRAMEWORK_TESTS ON)
           private/include/filter_private.h
           private/src/celix_errorcodes.c
           private/mock/celix_log_mock.c)
-        target_link_libraries(filter_gtest ${GTEST_LIBRARY} ${CPPUTEST_LIBRARY} ${CPPUTEST_EXT_LIBRARY} celix_utils pthread)
+        target_link_libraries(filter_gtest ${GTEST_LIBRARY} ${GMOCK_LIBRARY} ${CPPUTEST_LIBRARY} ${CPPUTEST_EXT_LIBRARY} celix_utils pthread)
 
 
         add_executable(capability_test 
