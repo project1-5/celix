@@ -27,9 +27,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "gtest.h"
 #include "gtest/gtest.h"
-#incldue "gmock.h"
+#include "gmock/gmock.h"
 
 extern "C" {
 #include "filter_private.h"
@@ -39,6 +38,7 @@ framework_logger_pt logger = (framework_logger_pt) 0x42;
 }
 
 int main(int argc, char** argv) {
+    InitGoogleMock(&__argc, __argv);
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
