@@ -29,6 +29,7 @@
 
 #include "gtest.h"
 #include "gtest/gtest.h"
+#incldue "gmock.h"
 
 extern "C" {
 #include "filter_private.h"
@@ -71,6 +72,40 @@ TEST(filter, create_destroy){
 
 	//cleanup
 	free(filter_str);
+}
 
+TEST(filter, create_fail_missing_opening_brackets) {
+	char * filter_str;
+	filter_pt get_filter;
+
+	//test missing opening brackets in main filter
+	//mock().expectNCalls(2, "framework_log");
+	filter_str = my_strdup("&(test_attr1=attr1)(|(test_attr2=attr2)(test_attr3=attr3))");
+	get_filter = filter_create(filter_str);
+    ASSERT_EQ(NULL, get_filter;)
+	free(filter_str);
+	//mock().checkExpectations();
+
+	//test missing opening brackets in AND comparator
+	filter_str = my_strdup("(&test_attr1=attr1|(test_attr2=attr2)(test_attr3=attr3))");
+	get_filter = filter_create(filter_str);
+    ASSERT_EQ(NULL, get_filter;
+	free(filter_str);
+	//mock().checkExpectations();
+
+	//test missing opening brackets in AND comparator
+	//mock().expectNCalls(4, "framework_log");
+	filter_str = my_strdup("(&(test_attr1=attr1)(|test_attr2=attr2(test_attr3=attr3))");
+	get_filter = filter_create(filter_str);
+    ASSERT_EQ(NULL, get_filter;
+	free(filter_str);
+	//mock().checkExpectations();
+
+	//test missing opening brackets in NOT comparator
+	//mock().expectNCalls(4, "framework_log");
+	filter_str = my_strdup("(&(test_attr1=attr1)(!test_attr2=attr2)");
+	get_filter = filter_create(filter_str);
+    ASSERT_EQ(NULL, get_filter;
+	free(filter_str);
 	//mock().checkExpectations();
 }
