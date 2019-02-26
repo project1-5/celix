@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "gtest.h"
+#include "gmock.h"
 #include "string.h"
 
 extern "C" {
