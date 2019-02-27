@@ -130,6 +130,15 @@ We did however:
 2. Succesfully import GMock into the project
 3. Start a conversion of a test file.
 
+Finding out how to run the tests took approx. 3-5 hours of time by itself. Importing GTest took about the same time, however importing GMock did not take as long (however GMock would not build
+in the project for one of our members).
+
+When we re-wrote the tests it was discovered that CppUTest is used when mocking C-function calls. Gmock on the other hand is not capable of doing this -- it's a C++ tool only.
+To mock C functions workarounds[WA] are required. More about this is described in the overall experience.
+
+[WA] https://stackoverflow.com/questions/31989040/can-gmock-be-used-for-stubbing-c-functions
+
+Since we did not finish the refactoring we will be submitting our findings to the bugtracker and describing the pros and cons of switching over and what potential issues might occur.
 
 ## Test logs
 Overall results with link to a copy of the logs (before/after 
@@ -177,3 +186,5 @@ however if a team needs to evaluate several projects and pick one to use then we
 Overall this went OK, a lot of what we did are hacks because we struggled with the project because of a lack of documentation and lack of communication channels (none of us are very experienced with mailing lists).
 
 From a technical standpoint, the main bottleneck issue was the conversion from CppUTest mocking to GMock. GMock is very much geared towards testing C++ code as many times, it requires object-oriented behavior to mock functions. For example, in order to mock a basic static logging function, we had to attempt to create an abstract base class, and a mock class that could inherit from aforementioned abstract class. This mock class would then call the static logging function and act as a wrapper. Now, we could create a mock object of the class and interface with the rest of the GMock + GTest API. 
+We approximate that each member would need at least 3 hours more of work for us to finish the whole filter_test.cpp conversion, this is considering the amount of time it'd take to learn both CppUTest and Google Test+Mock
+to such a degree that we would be able to convert between the two, and the natural time required to ensure that the conversion has been done correctly.
