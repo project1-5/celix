@@ -1,8 +1,8 @@
 # Report for assignment 4
 Members:
-Johan Johan Sjölén
-Nikhil Modak
-Jagan Moorthy
+- Johan Johan Sjölén
+- Nikhil Modak
+- Jagan Moorthy
 
 ## Project
 Name: Apache Celix
@@ -17,7 +17,11 @@ Title: Refactor CppUTest tests to gtest
 URL: https://issues.apache.org/jira/projects/CELIX/issues/CELIX-447?filter=allopenissues
 
 The issue is about moving the project over from CppUTest to GTest+GMock as the chosen testing platform.
-The reasons for why are outlined in the issue (ease of integration, heavier usage in the community as a whole, certain IDE support).
+The reasons for why are outlined in the issue:
+
+> 1) more easier to integrate as a external project
+> 2) much more heavily used than CppUTest
+> 3) integrated support in the CLion IDE. This means that the IDE supports directly running/debugging individually testcases/testsuites.
 
 ## Onboarding experience
 
@@ -28,6 +32,8 @@ we had to actually change the CMake files ourselves to get the tests to run (we 
 Many links in the repo lead to 404s, which was also annoying. There was a certain amount of documentation however, which helped.
 The main communication channel was through a mailing list. These are usually more well-suited for long-term discussion and since our team 
 did not have a lot of experience using one we did not end up contacting the team for support.
+
+Additionally, there was plenty of documentation on how to install the actual Celix application and use it to create more submodules, but there was very little, if any, documentation directing us on how to locate + run test suites for the entire project.
 
 ## Existing test cases relating to refactored code
 All of the test cases that utilize CppUTest (which should be all) will be affected by our refactoring.
@@ -103,12 +109,12 @@ installing it on your personal system (this is a slight amount of work because o
 
 2. gmock-import Import GMock into the project
 
-Now install GMock and import it into the project, same issues are current here.
+Now install GMock and import it into the project, same issues are current here. As with GTest, there is a bit of an installation process necessary to make sure it works. Instructions can be found at https://github.com/google/googletest/tree/master/googlemock. Importing just GMock should also import GTest for you.
 
 
 3. test-refactor Refactor at least one test file into using GTest+GMock
 
-Pick out a suitable testfile which at least does mocking and re-implement it with Gtest+Gmock
+Pick out a suitable testfile which at least does mocking and re-implement it with Gtest+Gmock. Mocking done for C function via CppUTest will need some additional refactoring for it to be able to be mocked by GMock. GMock only supports object-oriented mocking, meaning C functions will need to be wrapped with an interface with virtual funcitons denoting the functions to be mocked.
 
 4. make-test Set-up `make test`
 
@@ -132,26 +138,33 @@ The refactoring itself is documented by the git log.
 ## Effort spent
 For each team member, how much time was spent in
 1.  plenary discussions/meetings;
-Johan 1h
-Nikhil 1h
-Jagan 1h
+- Johan 1h
+- Nikhil 1h
+- Jagan 1h
 2.  discussions within parts of the group;
 Discussions within Github and Messenger (time is an approximation of course)
-Johan 1h
-Nikhil 1h
-Jagan 1h
+- Johan 1h
+- Nikhil 1h
+- Jagan 1h
 3.  reading documentation;
-Johan 3h
+- Johan 3h
+- Nikhil 2h
 4.  configuration;
-Johan 2h
+- Johan 2h
+- Nikhil 1h
 5.  analyzing code/output;
-Johan 2h
+- Johan 2h
+- Nikhil 1h
 6.  writing documentation;
-Johan 4h
+- Johan 4h
+- Nikhil 30 min
 7.  writing code;
-Johan 2h
+- Johan 2h
+- Nikhil 6h
 8.  running code?
-Johan 1h
+- Johan 1h
+- Nikhil 1h
+
 
 ## Overall experience
 
@@ -162,3 +175,5 @@ simple and painless as possible, at least for hobbyists. It's probably less of a
 however if a team needs to evaluate several projects and pick one to use then we can see issues with building one project will put it behind the others.
 
 Overall this went OK, a lot of what we did are hacks because we struggled with the project because of a lack of documentation and lack of communication channels (none of us are very experienced with mailing lists).
+
+From a technical standpoint, the main bottleneck issue was the conversion from CppUTest mocking to GMock. GMock is very much geared towards testing C++ code as many times, it requires object-oriented behavior to mock functions. For example, in order to mock a basic static logging function, we had to attempt to create an abstract base class, and a mock class that could inherit from aforementioned abstract class. This mock class would then call the static logging function and act as a wrapper. Now, we could create a mock object of the class and interface with the rest of the GMock + GTest API. 
