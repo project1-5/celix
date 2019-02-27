@@ -175,8 +175,8 @@ set(FRAMEWORK_TESTS ON)
 	    add_executable(filter_gtest
           private/test/filter_gtest.cpp
           private/src/filter.c
-          private/include/filter_private.h
           private/src/celix_errorcodes.c
+          private/mock/celix_log_gmock.h
           private/mock/celix_log_mock.c)
         target_link_libraries(filter_gtest ${GTEST_LIBRARY} ${GMOCK_LIBRARY} ${CPPUTEST_LIBRARY} ${CPPUTEST_EXT_LIBRARY} celix_utils pthread)
 
@@ -355,6 +355,7 @@ set(FRAMEWORK_TESTS ON)
         add_test(NAME capability_test COMMAND capability_test)
         add_test(NAME celix_errorcodes_test COMMAND celix_errorcodes_test)
         add_test(NAME filter_test COMMAND filter_test)
+        add_test(NAME filter_gtest COMMAND filter_gtest)
         add_test(NAME framework_test COMMAND framework_test)
         add_test(NAME manifest_parser_test COMMAND manifest_parser_test)
         add_test(NAME manifest_test COMMAND manifest_test)
@@ -377,6 +378,7 @@ set(FRAMEWORK_TESTS ON)
         SETUP_TARGET_FOR_COVERAGE(capability_test capability_test ${CMAKE_BINARY_DIR}/coverage/capability_test/capability_test)
         SETUP_TARGET_FOR_COVERAGE(celix_errorcodes_test celix_errorcodes_test ${CMAKE_BINARY_DIR}/coverage/celix_errorcodes_test/celix_errorcodes_test)
         SETUP_TARGET_FOR_COVERAGE(filter_test filter_test ${CMAKE_BINARY_DIR}/coverage/filter_test/filter_test)
+        SETUP_TARGET_FOR_COVERAGE(filter_gtest filter_gtest ${CMAKE_BINARY_DIR}/coverage/filter_gtest/filter_gtest)
         SETUP_TARGET_FOR_COVERAGE(framework_test framework_test ${CMAKE_BINARY_DIR}/coverage/framework_test/framework_test)
         SETUP_TARGET_FOR_COVERAGE(manifest_parser_test manifest_parser_test ${CMAKE_BINARY_DIR}/coverage/manifest_parser_test/manifest_parser_test)
         SETUP_TARGET_FOR_COVERAGE(manifest_test manifest_test ${CMAKE_BINARY_DIR}/coverage/manifest_test/manifest_test)
