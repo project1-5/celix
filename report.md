@@ -97,8 +97,10 @@ There is no need for a UML diagram since this does not change any of the code, o
 The main refactoring of the code is done in the CMake files.
 
 ## UML of refactoring
-Diagram 1: This shows the change required for mocking a C function with GTest in one case.
-Diagram 2: This shows the over-all refactoring done.
+Since the structure of the code and test cases largely remain the same (consider that we swap out test cases) we will
+showcase the structure difference when mocking C-functions, since this is a major difference to how it's done with CppUTest.
+
+Diagram1: This shows the change required for mocking a C function with GTest in one case.
 ## Requirements
 
 Requirements related to the functionality targeted by the refactoring are identified and described in a systematic way. Each requirement has a name (ID), title, and description, and other optional attributes (in case of P+, see below). The description can be one paragraph per requirement.
