@@ -127,13 +127,13 @@ We did however:
 
 1. Succesfully import GTest into the project
 2. Succesfully import GMock into the project
-3. Start a conversion of a test file, along with figuring out how to mock a C function in Google mock
+3. Start a conversion of a test file, along with attempting  mocking a C function in Google mock
 
 Finding out how to run the tests took approx. 3-5 hours of time by itself. Importing GTest took about the same time, however importing GMock did not take as long (however GMock would not build
 in the project for one of our members).
 
 When we re-wrote the tests it was discovered that CppUTest is used when mocking C-function calls. Gmock on the other hand is not capable of doing this -- it's a C++ tool only.
-To mock C functions workarounds[WA] are required. More about this is described in the overall experience.
+To mock C functions workarounds[WA] are required. More about this is described in the overall experience. If you want to see our attempt at mocking see the branch `mocking`.
 
 [WA] https://stackoverflow.com/questions/31989040/can-gmock-be-used-for-stubbing-c-functions
 
@@ -146,11 +146,6 @@ and tests the code in filter\_private.h along with creating new files celix\_log
 We also added CMake language code (the procedural programming language used to build things with CMake) for finding GMock and GTest,
 along with the standard boilerplate for including the code in the project.
 
-## What
-## Test logs
-Overall results with link to a copy of the logs (before/after 
-refactoring).
-The refactoring itself is documented by the git log.
 ## Effort spent
 For each team member, how much time was spent in
 1.  plenary discussions/meetings;
@@ -158,8 +153,8 @@ For each team member, how much time was spent in
 - Nikhil 1h
 2.  discussions within parts of the group;
 Discussions within Github and Messenger (time is an approximation of course)
-- Johan 1h
-- Nikhil 1h
+- Johan 2h
+- Nikhil 2h
 3.  reading documentation;
 - Johan 3h
 - Nikhil 2h
@@ -173,10 +168,10 @@ Discussions within Github and Messenger (time is an approximation of course)
 - Johan 5h
 - Nikhil 30 min
 7.  writing code;
-- Johan 2h
+- Johan 4h
 - Nikhil 6h
 8.  running code?
-- Johan 1h
+- Johan 2h
 - Nikhil 1h
 
 
