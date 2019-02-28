@@ -147,6 +147,7 @@ We also added CMake language code (the procedural programming language used to b
 along with the standard boilerplate for including the code in the project.
 
 # P+ Efforts
+
 ## Giving back to the project
 As also mentioned above we wrote a comment in the bugtracker 
 describing our findings regarding GTest and GMock.
@@ -196,6 +197,51 @@ typedef struct example_struct example_t;
 
 The Apache Celix project uses CMake, an application for managing the build process of your software. A simple configuration file (CMakeLists.txt) is used to define and generate build files similar to a Makefile. The outermost CMakeLists.txt file is where scripts to find depndencies on your machine are located. This is also where you link .cpp/.c files to appropriate executable build targets. The respective `framework/CMakeLists.txt` is where we defined the build rules for our new filter_gtest.cpp tests.
 
+## IEEE 830 Project Requirements
+
+Mockito System Requirements IEEE Standard
+
+### Introduction 
+  1. Purpose: Apache Celix is a C/C++ implementation of the Java OSGi framework standard. It allows users to develop modular services and applications compliant with OSGi’s component and service-oriented programming. In OSGi, bundles are defined to be a group of classes and resources with a MANIFEST.MF file that have additional behaviors that allow them to act as one component. In Java, these bundles are normally manifested as jars, however with Celix, bundles are represented as zip files. Within the bundle, Celix users can expect to find a bundle activator, responsible for managing and building the lifecycle of the bundle.
+
+  2. Scope: Users will use Apache Celix to build C/C++ modules that interface with the Java OSGi framework standards. No system requirements are necessary, but proper packages outlined in the README need to be installed.
+  3. Definitions, acronyms, and abbreviations:  
+     -  OSGi: “is a set of specifications that define a dynamic component system for Java. These specifications enable a development model where an application is composed of several components which are packaged in bundles. Components communicate locally and across the network through services.” [1]
+  4. References
+“Architecture.” OSGi™ Alliance, www.osgi.org/developer/architecture/.
+
+### Specific requirements 
+#### External interface requirements
+1. User interfaces:
+Users can interface with Apache Celix by creating their services and modules and defined by the Apache Celix documentation.A service name, service provider version and service consumer range should be declared in the header file of your service as macros. According to Celix documentation, macros are used to prevent symbols so to that no linking dependencies are introduced. A struct must be explicitly defined for every service you want to create. Components of said service should follow the ADT (Abstract Data Type) convention in C. 
+
+2. Hardware interfaces: None
+3. Software interfaces:
+   - Build System (CMake). Proper version of Cmake must be installed on your machine. Other packages needed are as follows:
+     - Development Environment:
+       - build-essentials (gcc/g++ or clang/clang++)
+       - git
+       - java (for packaging bundles)
+       - cmake (3.2 or higher)
+     - Apache Celix Dependencies
+       - curl
+       - jansson
+       - libffi
+       - libxml2 (for remote services and bonjour shell)
+
+4. Communications interfaces: None
+#### Functional requirements 
+
+1. test_filter_match_operators
+   1. Description: Tests whether or not a filter created from a given string format matches with the properties defined in the test case during setup.
+   2. Arguments: None
+   3. Return: void
+2. mock_framework_log
+   1. Description: Used as a stub to call the real framework_log function defined in celix_log.c. The real framework_log function logs which function was called (given as a parameter) into the given file.
+   2. Arguments: (framework_logger_pt logger, framework_log_level_t level, const char *func, const char *file, int line, const char *fmsg)
+   3. Void
+
+
 
 
 
@@ -210,7 +256,7 @@ Discussions within Github and Messenger (time is an approximation of course)
 - Nikhil 2h
 3.  reading documentation;
 - Johan 3h
-- Nikhil 2h
+- Nikhil 3h
 4.  configuration;
 - Johan 2,5h
 - Nikhil 1h
@@ -219,10 +265,10 @@ Discussions within Github and Messenger (time is an approximation of course)
 - Nikhil 1h
 6.  writing documentation;
 - Johan 5,5h
-- Nikhil 30 min
+- Nikhil 3h
 7.  writing code;
 - Johan 4h
-- Nikhil 6h
+- Nikhil 7h
 8.  running code?
 - Johan 2h
 - Nikhil 1h
