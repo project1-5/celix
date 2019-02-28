@@ -79,6 +79,44 @@ TEST(filter, create_destroy){
 	free(filter_str);
 }
 
+TEST(filter, match_comparators){
+	char * filter_str;
+	filter_pt filter;
+	properties_pt props = properties_create();
+	char * key = my_strdup("test_attr1");
+	char * val = my_strdup("attr1");
+	char * key2 = my_strdup("test_attr2");
+	char * val2 = my_strdup("attr2");
+	properties_set(props, key, val);
+	properties_set(props, key2, val2);
+
+	//test AND
+	filter_str = my_strdup("(&(test_attr1=attr1)(|(test_attr2=attr2)(!(test_attr3=attr3))))");
+	filter = filter_create(filter_str);
+	bool result = false;
+	filter_match(filter, props, &result);
+	ASSERT_TRUE(result);
+
+	//test AND false
+	filter_destroy(filter);
+	free(filter_str);
+	filter_str = my_strdup("(&(test_attr1=attr1)(test_attr1=attr2))");
+	filter = filter_create(filter_str);
+	result = true;
+	filter_match(filter, props, &result);
+	ASSERT_FALSE(result);
+
+	//cleanup
+	properties_destroy(props);
+	filter_destroy(filter);
+	free(filter_str);
+	free(key);
+	free(key2);
+	free(val);
+	free(val2);
+}
+
+
 TEST(filter, match_operators){
 	char * filter_str;
 	filter_pt filter;
@@ -277,4 +315,84 @@ TEST(filter, match_operators){
 	free(val);
 	free(val2);
 
+}
+
+TEST(filter, match_recursion){
+
+	char * filter_str = my_strdup("(&(test_attr1=attr1)(|(&(test_attr2=attr2)(!(&(test_attr1=attr1)(test_attr3=attr3))))(test_attr3=attr3)))");
+	filter_pt filter = filter_create(filter_str);
+	properties_pt props = properties_create();
+	char * key = my_strdup("test_attr1");
+	char * val = my_strdup("attr1");
+	char * key2 = my_strdup("test_attr2");
+	char * val2 = my_strdup("attr2");
+	properties_set(props, key, val);
+	properties_set(props, key2, val2);
+
+	bool result = false;
+	filter_match(filter, props, &result);
+	ASSERT_TRUE(result);
+
+	//cleanup
+	properties_destroy(props);
+	filter_destroy(filter);
+	free(filter_str);
+	free(key);
+	free(key2);
+	free(val);
+	free(val2);
+}
+
+TEST(filter, match_false){
+	char * filter_str = my_strdup("(&(test_attr1=attr1)(&(test_attr2=attr2)(test_attr3=attr3)))");
+	filter_pt filter = filter_create(filter_str);
+	properties_pt props = properties_create();
+	char * key = my_strdup("test_attr1");
+	char * val = my_strdup("attr1");
+	char * key2 = my_strdup("test_attr2");
+	char * val2 = my_strdup("attr2");
+	properties_set(props, key, val);
+	properties_set(props, key2, val2);
+
+	bool result = true;
+	filter_match(filter, props, &result);
+	ASSERT_FALSE(result);
+
+	//cleanup
+	properties_destroy(props);
+	filter_destroy(filter);
+	free(filter_str);
+	free(key);
+	free(key2);
+	free(val);
+	free(val2);
+
+}
+
+TEST(filter, match_filter){
+	char * filter_str = my_strdup("(&(test_attr1=attr1)(|(test_attr2=attr2)(test_attr3=attr3)))");
+	char * compareTo_str = my_strdup("(&(test_attr1=attr1)(|(test_attr2=attr2)(test_attr3=attr3)))");
+	filter_pt filter = filter_create(filter_str);
+	filter_pt compareTo = filter_create(compareTo_str);
+
+	bool result;
+	filter_match_filter(filter, compareTo, &result);
+
+	//cleanup
+	filter_destroy(filter);
+	filter_destroy(compareTo);
+	free(filter_str);
+	free(compareTo_str);
+}
+
+TEST(filter, getString){
+	char * filter_str = my_strdup("(&(test_attr1=attr1)(|(test_attr2=attr2)(test_attr3=attr3)))");
+	filter_pt filter = filter_create(filter_str);
+
+	const char * get_str;
+	filter_getString(filter, &get_str);
+
+	//cleanup
+	filter_destroy(filter);
+	free(filter_str);
 }
