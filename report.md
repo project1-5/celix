@@ -147,7 +147,10 @@ We also added CMake language code (the procedural programming language used to b
 along with the standard boilerplate for including the code in the project.
 
 # P+ Efforts
-
+## Giving back to the project
+As also mentioned above we wrote a comment in the bugtracker 
+describing our findings regarding GTest and GMock.
+The link can be found under the Selected issue(s) section of the report.
 ## Our changes and overall software architecture
 One of the reasons behind changing over to Gtest and Gmock was to use tools which are in greater use.
 This sort of change is well-funded with regards to an open source project: You want to lower the requirements of entering a project
@@ -215,7 +218,7 @@ Discussions within Github and Messenger (time is an approximation of course)
 - Johan 2h
 - Nikhil 1h
 6.  writing documentation;
-- Johan 5h
+- Johan 5,5h
 - Nikhil 30 min
 7.  writing code;
 - Johan 4h
@@ -238,3 +241,4 @@ Overall this went OK, a lot of what we did are hacks because we struggled with t
 From a technical standpoint, the main bottleneck issue was the conversion from CppUTest mocking to GMock. GMock is very much geared towards testing C++ code as many times, it requires object-oriented behavior to mock functions. For example, in order to mock a basic static logging function, we had to attempt to create an abstract base class, and a mock class that could inherit from aforementioned abstract class. This mock class would then call the static logging function and act as a wrapper. Now, we could create a mock object of the class and interface with the rest of the GMock + GTest API. 
 We approximate that each member would need at least 3 hours more of work for us to finish the whole filter_test.cpp conversion, this is considering the amount of time it'd take to learn both CppUTest and Google Test+Mock
 to such a degree that we would be able to convert between the two, and the natural time required to ensure that the conversion has been done correctly.
+	
