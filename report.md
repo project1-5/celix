@@ -91,11 +91,6 @@ Total Test time (real) =   0.07 sec
 ```
 
 
-## The refactoring carried out
-There is no need for a UML diagram since this does not change any of the code, only the library that the code interfaces with.
-
-The main refactoring of the code is done in the CMake files.
-
 ## UML of refactoring
 Since the structure of the code and test cases largely remain the same (consider that we swap out test cases) we will
 showcase the structure difference when mocking C-functions, since this is a major difference to how it's done with CppUTest.
@@ -132,7 +127,7 @@ We did however:
 
 1. Succesfully import GTest into the project
 2. Succesfully import GMock into the project
-3. Start a conversion of a test file.
+3. Start a conversion of a test file, along with figuring out how to mock a C function in Google mock
 
 Finding out how to run the tests took approx. 3-5 hours of time by itself. Importing GTest took about the same time, however importing GMock did not take as long (however GMock would not build
 in the project for one of our members).
@@ -143,7 +138,15 @@ To mock C functions workarounds[WA] are required. More about this is described i
 [WA] https://stackoverflow.com/questions/31989040/can-gmock-be-used-for-stubbing-c-functions
 
 Since we did not finish the refactoring we will be submitting our findings to the bugtracker and describing the pros and cons of switching over and what potential issues might occur.
+See the link in the Project section to read the comment.
 
+## What our code affects
+Our code replaces 4 test cases (really multiple tests are in each test) from filter_test.cpp,
+and tests the code in filter\_private.h along with creating new files celix\_log\_gmock.h.
+We also added CMake language code (the procedural programming language used to build things with CMake) for finding GMock and GTest,
+along with the standard boilerplate for including the code in the project.
+
+## What
 ## Test logs
 Overall results with link to a copy of the logs (before/after 
 refactoring).
@@ -161,13 +164,13 @@ Discussions within Github and Messenger (time is an approximation of course)
 - Johan 3h
 - Nikhil 2h
 4.  configuration;
-- Johan 2h
+- Johan 2,5h
 - Nikhil 1h
 5.  analyzing code/output;
 - Johan 2h
 - Nikhil 1h
 6.  writing documentation;
-- Johan 4h
+- Johan 5h
 - Nikhil 30 min
 7.  writing code;
 - Johan 2h
