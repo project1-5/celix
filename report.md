@@ -146,6 +146,45 @@ and tests the code in filter\_private.h along with creating new files celix\_log
 We also added CMake language code (the procedural programming language used to build things with CMake) for finding GMock and GTest,
 along with the standard boilerplate for including the code in the project.
 
+# P+ Efforts
+
+## System Architecture + Purpose
+
+Purpose: 
+
+Apache Celix is a C/C++ implementation of the Java OSGi framework standard. It allows users to develop modular services and applications compliant with OSGi’s component and service-oriented programming.
+In OSGi, bundles are defined to be a group of classes and resources with a MANIFEST.MF file that have additional behaviors that allow them to act as one component. In Java, these bundles are normally manifested as jars, however with Celix, bundles are represented as zip files. Within the bundle, Celix users can expect to find a bundle activator, responsible for managing and building the lifecycle of the bundle. 
+C is, of course, not an object-oriented programming language so in development, a mapping is used to convert C functions to Java functions. According to the Apache Celix website, one of the reasons C was chosen was because C can act as a common denominator for interoperability between a variety of service-oriented programming languages.
+
+Usage/Architecture:
+
+To create a Celix OSGi service, your service must follow a specific outline. A service name, service provider version and service consumer range should be declared in the header file of your service as macros. According to Celix documentation, macros are used to prevent symbols so to that no linking dependencies are introduced. A struct must be explicitly defined for every service you want to create. Components of said service should follow the ADT (Abstract Data Type) convention in C. An example is shown below:
+
+```
+//example.h
+#ifndef EXAMPLE_H_
+#define EXAMPLE_H_
+
+#define EXAMPLE_NAME            "org.example"
+#define EXAMPLE_VERSION         "1.0.0"
+#define EXAMPLE_CONSUMER_RANGE  "[1.0.0,2.0.0)"
+
+
+struct example_struct {
+    void *handle;
+    int (*method)(void *handle, int arg1, double arg2, double *result);
+} ;
+
+typedef struct example_struct example_t;
+
+#endif /* EXAMPLE_H_ */
+``` 
+
+The Apache Celix project uses CMake, an application for managing the build process of your software. A simple configuration file (CMakeLists.txt) is used to define and generate build files similar to a Makefile. The outermost CMakeLists.txt file is where scripts to find depndencies on your machine are located. This is also where you link .cpp/.c files to appropriate executable build targets. The respective `framework/CMakeLists.txt` is where we defined the build rules for our new filter_gtest.cpp tests.
+
+
+
+
 ## Effort spent
 For each team member, how much time was spent in
 1.  plenary discussions/meetings;
