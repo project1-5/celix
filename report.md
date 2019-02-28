@@ -239,10 +239,7 @@ Users can interface with Apache Celix by creating their services and modules and
 2. mock_framework_log
    1. Description: Used as a stub to call the real framework_log function defined in celix_log.c. The real framework_log function logs which function was called (given as a parameter) into the given file.
    2. Arguments: (framework_logger_pt logger, framework_log_level_t level, const char *func, const char *file, int line, const char *fmsg)
-   3. Void
-
-
-
+   3. Return: Void
 
 
 ## Effort spent
