@@ -148,6 +148,17 @@ along with the standard boilerplate for including the code in the project.
 
 # P+ Efforts
 
+## Our changes and overall software architecture
+One of the reasons behind changing over to Gtest and Gmock was to use tools which are in greater use.
+This sort of change is well-funded with regards to an open source project: You want to lower the requirements of entering a project
+and using dependencies people are used to will increase the likelihood of that happening.
+Thus our changes could help with regards to the community of Apache Celix.
+
+Our changes lead to us having to see how the mocking procedure works in two different frameworks.
+A mocking framework can be implemented using a creational patttern such as the Factory pattern, where mocks are created by what is essentially fake objects.
+Or it can be done such as in GoogleTest where a mocking class is declared which inherits from the regular class and uses metaprogramming (macros and templates)
+to provide the substitution in calling code.
+
 ## System Architecture + Purpose
 
 Purpose: 
