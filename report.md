@@ -2,7 +2,6 @@
 Members:
 - Johan Johan Sjölén
 - Nikhil Modak
-- Jagan Moorthy
 
 ## Project
 Name: Apache Celix
@@ -97,6 +96,9 @@ There is no need for a UML diagram since this does not change any of the code, o
 
 The main refactoring of the code is done in the CMake files.
 
+## UML of refactoring
+Diagram 1: This shows the change required for mocking a C function with GTest in one case.
+Diagram 2: This shows the over-all refactoring done.
 ## Requirements
 
 Requirements related to the functionality targeted by the refactoring are identified and described in a systematic way. Each requirement has a name (ID), title, and description, and other optional attributes (in case of P+, see below). The description can be one paragraph per requirement.
@@ -149,12 +151,10 @@ For each team member, how much time was spent in
 1.  plenary discussions/meetings;
 - Johan 1h
 - Nikhil 1h
-- Jagan 1h
 2.  discussions within parts of the group;
 Discussions within Github and Messenger (time is an approximation of course)
 - Johan 1h
 - Nikhil 1h
-- Jagan 1h
 3.  reading documentation;
 - Johan 3h
 - Nikhil 2h
